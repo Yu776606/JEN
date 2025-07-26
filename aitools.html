@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具集合 - AI工具與實用網站</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            margin-bottom: 0;
+        }
+
+        .section-header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .section-header h2 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-tools { border-left: 4px solid #3b82f6; }
+        .expert-creations { border-left: 4px solid #10b981; }
+        .online-tools { border-left: 4px solid #f59e0b; }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #475569;
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .tool-subtitle {
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .tool-description {
+            color: #64748b;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .icon-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .ai-section .icon-link {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .expert-section .icon-link {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        }
+
+        .tools-section .icon-link {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .icon-link:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            background: #f8fafc;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .section-header {
+                padding: 15px 20px;
+            }
+            
+            .section-header h2 {
+                font-size: 1.3rem;
+            }
+            
+            th, td {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .tool-name {
+                font-size: 1rem;
+            }
+            
+            .icon-link {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* 動畫效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .section {
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.2s; }
+        .section:nth-child(4) { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ 工具集合</h1>
+            <p>AI工具、創作平台與實用網站的完整收藏</p>
+        </div>
+        
+        <!-- AI工具區 -->
+        <div class="section">
+            <div class="section-header ai-tools">
+                <h2>🤖 AI工具區</h2>
+            </div>
+            <div class="table-container">
+                <table class="ai-section">
+                    <thead>
+                        <tr>
+                            <th>🛠️ 工具</th>
+                            <th>⚡ 功能</th>
+                            <th>🔗 連結</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="tool-name">NotebookLM</div>
+                                <div class="tool-subtitle">Google</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    智能筆記本和研究助手，能夠分析文檔、生成摘要，並協助進行深度研究和知識管理
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://notebooklm.google.com/" target="_blank" class="icon-link" title="前往 NotebookLM">
+                                    📓
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">Perplexity</div>
+                                <div class="tool-subtitle">AI Search Engine</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    AI 驅動的搜索引擎，提供準確的答案和引用來源，結合搜索和對話功能的智能問答平台
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://www.perplexity.ai/" target="_blank" class="icon-link" title="前往 Perplexity">
+                                    🔍
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">Gemini</div>
+                                <div class="tool-subtitle">Google AI</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    Google 的多模態 AI 助手，支援文字、圖像和代碼處理，提供創作、分析和問題解決服務
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://gemini.google.com/" target="_blank" class="icon-link" title="前往 Gemini">
+                                    ✨
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">Claude</div>
+                                <div class="tool-subtitle">Anthropic</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    智能對話助手，擅長分析、寫作、編程和複雜推理，提供安全可靠的AI對話體驗
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://claude.ai/" target="_blank" class="icon-link" title="前往 Claude">
+                                    🧠
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">ChatGPT</div>
+                                <div class="tool-subtitle">OpenAI</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    強大的對話式AI助手，支援文字生成、代碼編寫、問題解答和創意寫作等多種任務
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://chatgpt.com/" target="_blank" class="icon-link" title="前往 ChatGPT">
+                                    💬
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">GitHub</div>
+                                <div class="tool-subtitle">Microsoft</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    全球最大的代碼託管平台，支援版本控制、協作開發和開源項目管理
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://github.com/" target="_blank" class="icon-link" title="前往 GitHub">
+                                    👨‍💻
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 高手創作區 -->
+        <div class="section">
+            <div class="section-header expert-creations">
+                <h2>🎨 高手創作區</h2>
+            </div>
+            <div class="table-container">
+                <table class="expert-section">
+                    <thead>
+                        <tr>
+                            <th>🛠️ 工具</th>
+                            <th>📝 網站簡介</th>
+                            <th>🔗 連結</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="tool-name">FunFun.AI</div>
+                                <div class="tool-subtitle">AI創作平台</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    專業的AI創作和應用展示平台，提供豐富的AI工具介紹和使用教學資源
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://chunsheng612.github.io/FunFun.AI-Website/" target="_blank" class="icon-link" title="前往 FunFun.AI">
+                                    🎯
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">工具清單</div>
+                                <div class="tool-subtitle">資源整理</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    精心整理的工具資源清單，包含各類實用工具和網站推薦，方便快速查找所需資源
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://filedn.com/laMtL9jmKf7JrDEQG0A6OPy/html/list/list-out.html" target="_blank" class="icon-link" title="前往工具清單">
+                                    📋
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">菩提AI教學工具庫</div>
+                                <div class="tool-subtitle">Padlet收藏</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    專業的AI教學工具收藏庫，整合各種AI教學資源和實用工具，適合教育工作者使用
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://padlet.com/clongwh/puti-ai-teaching-tool-library-tifvrvjcpg51cw7r" target="_blank" class="icon-link" title="前往菩提AI教學工具庫">
+                                    🎓
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 線上小工具 -->
+        <div class="section">
+            <div class="section-header online-tools">
+                <h2>🔧 線上小工具</h2>
+            </div>
+            <div class="table-container">
+                <table class="tools-section">
+                    <thead>
+                        <tr>
+                            <th>🛠️ 工具</th>
+                            <th>📝 網站簡介</th>
+                            <th>🔗 連結</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="tool-name">Markdown Tools</div>
+                                <div class="tool-subtitle">格式轉換</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    專業的Markdown格式轉換工具，支援Markdown轉CSV等多種格式互轉功能
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://www.markdowntools.com/tools/markdown-to-csv" target="_blank" class="icon-link" title="前往 Markdown Tools">
+                                    📄
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tool-name">Markmap</div>
+                                <div class="tool-subtitle">心智圖生成</div>
+                            </td>
+                            <td>
+                                <div class="tool-description">
+                                    線上心智圖製作工具，可將Markdown文字快速轉換為互動式思維導圖，支援即時預覽
+                                </div>
+                            </td>
+                            <td>
+                                <a href="https://markmap.js.org/repl" target="_blank" class="icon-link" title="前往 Markmap">
+                                    🗺️
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>點擊圖標即可在新分頁中開啟對應工具 | 更新時間: 2025年7月</p>
+        </div>
+    </div>
+</body>
+</html>
