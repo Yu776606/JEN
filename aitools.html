@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
+<html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>工具集合 - AI工具與實用網站</title>
@@ -598,7 +596,16 @@
                                 </a>
                             </td>
                         </tr>
-                    </tbody>
+                    <tr><td>
+                <div class="tool-name">方方老師FB</div>
+                <div class="tool-subtitle">遊戲工具</div>
+            </td><td>
+                <div class="tool-description">為學習創造遊戲，以遊戲創造學習。面對資訊變遷的社會，孩子能具備哲學思維，以真實脈絡面對未來挑戰</div>
+            </td><td>
+                <a href="https://www.facebook.com/FunFun.AI.Teacher/" target="_blank" class="icon-link" title="前往 方方老師FB">
+                    📔
+                </a>
+            </td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -697,13 +704,13 @@
     </div>
 
     <!-- 新增工具的彈出對話框 -->
-    <div id="addModal" class="modal">
+    <div id="addModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h3>新增工具</h3>
             <form id="addToolForm">
                 <div class="form-group">
                     <label for="category">選擇分類：</label>
-                    <select id="category" required>
+                    <select id="category" required="">
                         <option value="">請選擇分類</option>
                         <option value="ai-tools">🤖 AI工具區</option>
                         <option value="expert-creations">🎨 高手創作區</option>
@@ -713,23 +720,23 @@
                 </div>
                 <div class="form-group">
                     <label for="toolName">工具名稱：</label>
-                    <input type="text" id="toolName" required>
+                    <input type="text" id="toolName" required="">
                 </div>
                 <div class="form-group">
                     <label for="toolSubtitle">副標題：</label>
-                    <input type="text" id="toolSubtitle" required>
+                    <input type="text" id="toolSubtitle" required="">
                 </div>
                 <div class="form-group">
                     <label for="toolDescription">功能描述：</label>
-                    <textarea id="toolDescription" required></textarea>
+                    <textarea id="toolDescription" required=""></textarea>
                 </div>
                 <div class="form-group">
                     <label for="toolUrl">網站連結：</label>
-                    <input type="url" id="toolUrl" required>
+                    <input type="url" id="toolUrl" required="">
                 </div>
                 <div class="form-group">
                     <label for="toolIcon">圖標 (表情符號)：</label>
-                    <input type="text" id="toolIcon" readonly style="background-color: #f9fafb; cursor: not-allowed;" placeholder="將自動產生">
+                    <input type="text" id="toolIcon" readonly="" style="background-color: #f9fafb; cursor: not-allowed;" placeholder="將自動產生">
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-secondary" onclick="closeAddModal()">取消</button>
@@ -881,5 +888,6 @@
             alert('檔案已成功儲存！');
         }
     </script>
-</body>
-</html>
+
+
+</body></html>
