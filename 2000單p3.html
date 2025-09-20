@@ -61,6 +61,11 @@
         .phonetics-font {
             font-family: 'Noto Sans', sans-serif;
         }
+        /* 讓按鈕有被按下的感覺 */
+        .btn-active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) inset;
+        }
     </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
@@ -77,6 +82,14 @@
         <div id="flashcardPage" class="space-y-6">
             <!-- 進度顯示 -->
             <div id="progress" class="text-center text-gray-500 text-lg">1 / 3</div>
+
+            <!-- ===== 修改: 類別選擇 ===== -->
+            <div class="flex justify-center items-center mb-4 space-x-2">
+                <label class="text-gray-700 font-semibold mr-2">類別:</label>
+                <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
+                <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
+                <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
+            </div>
 
             <!-- 發音速度選擇 -->
             <div class="flex justify-center items-center mb-4">
@@ -135,6 +148,13 @@
             <p class="text-2xl font-bold text-gray-700 mt-8">請聽發音並拼出單字：</p>
             
             <div class="flex flex-col items-center justify-center h-48">
+                <!-- ===== 修改: 類別選擇 ===== -->
+                <div class="flex justify-center items-center mb-4 space-x-2">
+                    <label class="text-gray-700 font-semibold mr-2">類別:</label>
+                    <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
+                    <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
+                    <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
+                </div>
                 <!-- 發音速度選擇 -->
                 <div class="mb-4">
                     <label for="dictationSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
@@ -167,23 +187,64 @@
     </div>
 
     <script>
-        const words = [
-            { english: 'beautiful', partOfSpeech: 'adj.', phonetics: "[ˈbjuːtəfl]", sentence: 'I need a beautiful dress for the party.', chinese: '美觀的, 漂亮的', chineseSentence: '為了這場派對，我需要一件美麗的洋裝。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'a beautiful dress', type: 'O' }, { text: 'for the party', type: 'A' }] },
-            { english: 'cute', partOfSpeech: 'adj.', phonetics: "[kjuːt]", sentence: 'He bought a cute sweater for Daisy.', chinese: '可愛的', chineseSentence: '他買了一件可愛的毛衣給黛西。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'bought', type: 'V' }, { text: 'a cute sweater', type: 'O' }, { text: 'for Daisy', type: 'A' }] },
-            { english: 'handsome', partOfSpeech: 'adj.', phonetics: "[ˈhænsəm]", sentence: 'Handsome is as handsome does.', chinese: '英俊的, 好看的', chineseSentence: '慷慨仁慈始為美。', sentenceAnalysis: [{ text: 'Handsome', type: 'S' }, { text: 'is', type: 'V' }, { text: 'as handsome does', type: 'A' }] },
-            { english: 'pretty', partOfSpeech: 'adj.', phonetics: "[ˈprɪti]", sentence: 'Mr. Wang has a pretty daughter.', chinese: '漂亮的, 可愛的', chineseSentence: '王先生有個漂亮的女兒。', sentenceAnalysis: [{ text: 'Mr. Wang', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a pretty daughter', type: 'O' }] },
-            { english: 'ugly', partOfSpeech: 'adj.', phonetics: "[ˈʌɡli]", sentence: 'What an ugly picture!', chinese: '醜陋的, 難看的', chineseSentence: '這張圖畫實在有夠醜。', sentenceAnalysis: [{ text: 'What an ugly picture', type: 'C' }] },
-            { english: 'blind', partOfSpeech: 'adj.', phonetics: "[blaɪnd]", sentence: 'We should help blind people.', chinese: '瞎的', chineseSentence: '我們應該幫助盲人。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'should help', type: 'V' }, { text: 'blind people', type: 'O' }] },
-            { english: 'chubby', partOfSpeech: 'adj.', phonetics: "[ˈtʃʌbi]", sentence: 'The boy has a chubby face.', chinese: '圓胖的, 豐滿的', chineseSentence: '這個男孩有張胖嘟嘟的臉。', sentenceAnalysis: [{ text: 'The boy', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a chubby face', type: 'O' }] },
-            { english: 'deaf', partOfSpeech: 'adj.', phonetics: "[def]", sentence: 'Helen Keller was blind, deaf and dumb.', chinese: '聾的', chineseSentence: '海倫凱勒又瞎又聾又啞。', sentenceAnalysis: [{ text: 'Helen Keller', type: 'S' }, { text: 'was', type: 'V' }, { text: 'blind, deaf and dumb', type: 'C' }] },
-            { english: 'dumb', partOfSpeech: 'adj.', phonetics: "[dʌm]", sentence: 'Dumb dogs are dangerous.', chinese: '啞的', chineseSentence: '無聲狗，咬死人。', sentenceAnalysis: [{ text: 'Dumb dogs', type: 'S' }, { text: 'are', type: 'V' }, { text: 'dangerous', type: 'C' }] },
-            { english: 'fat', partOfSpeech: 'adj.', phonetics: "[fæt]", sentence: 'Don\'t eat too much fat.', chinese: '肥胖的', chineseSentence: '不要攝取太多脂肪。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: 'don\'t eat', type: 'V' }, { text: 'too much fat', type: 'O' }] },
-            { english: 'heavy', partOfSpeech: 'adj.', phonetics: "[ˈhevi]", sentence: 'The box is too heavy to carry.', chinese: '重的', chineseSentence: '這個箱子太重了提不動。', sentenceAnalysis: [{ text: 'The box', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too heavy to carry', type: 'C' }] },
-            { english: 'over-weight', partOfSpeech: 'adj.', phonetics: "[ˌoʊvərˈweɪt]", sentence: 'Over-weight is bad for health.', chinese: '過重的', chineseSentence: '過重有損健康。', sentenceAnalysis: [{ text: 'Over-weight', type: 'S' }, { text: 'is', type: 'V' }, { text: 'bad for health', type: 'C' }] },
-            { english: 'under-weight', partOfSpeech: 'adj.', phonetics: "[ˌʌndərˈweɪt]", sentence: 'Dad is under-weight because he eats too little.', chinese: '過輕的', chineseSentence: '爸爸體重過輕是因為他吃的太少。', sentenceAnalysis: [{ text: 'Dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'under-weight', type: 'C' }, { text: 'because he eats too little', type: 'A' }] },
-            { english: 'nice-looking', partOfSpeech: 'adj.', phonetics: "[ˌnaɪsˈlʊkɪŋ]", sentence: 'She is a nice-looking girl.', chinese: '好看的', chineseSentence: '她是個好看的女孩。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice-looking girl', type: 'C' }] }
-        ];
+        // ===== 修改: 新增P5單字 =====
+        const wordCategories = {
+            'P3': [
+                { english: 'beautiful', partOfSpeech: 'adj.', phonetics: "[ˈbjuːtəfl]", sentence: 'I need a beautiful dress for the party.', chinese: '美觀的, 漂亮的', chineseSentence: '為了這場派對，我需要一件美麗的洋裝。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'a beautiful dress', type: 'O' }, { text: 'for the party', type: 'A' }] },
+                { english: 'cute', partOfSpeech: 'adj.', phonetics: "[kjuːt]", sentence: 'He bought a cute sweater for Daisy.', chinese: '可愛的', chineseSentence: '他買了一件可愛的毛衣給黛西。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'bought', type: 'V' }, { text: 'a cute sweater', type: 'O' }, { text: 'for Daisy', type: 'A' }] },
+                { english: 'handsome', partOfSpeech: 'adj.', phonetics: "[ˈhænsəm]", sentence: 'Handsome is as handsome does.', chinese: '英俊的, 好看的', chineseSentence: '慷慨仁慈始為美。', sentenceAnalysis: [{ text: 'Handsome', type: 'S' }, { text: 'is', type: 'V' }, { text: 'as handsome does', type: 'A' }] },
+                { english: 'pretty', partOfSpeech: 'adj.', phonetics: "[ˈprɪti]", sentence: 'Mr. Wang has a pretty daughter.', chinese: '漂亮的, 可愛的', chineseSentence: '王先生有個漂亮的女兒。', sentenceAnalysis: [{ text: 'Mr. Wang', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a pretty daughter', type: 'O' }] },
+                { english: 'ugly', partOfSpeech: 'adj.', phonetics: "[ˈʌɡli]", sentence: 'What an ugly picture!', chinese: '醜陋的, 難看的', chineseSentence: '這張圖畫實在有夠醜。', sentenceAnalysis: [{ text: 'What an ugly picture', type: 'C' }] },
+                { english: 'blind', partOfSpeech: 'adj.', phonetics: "[blaɪnd]", sentence: 'We should help blind people.', chinese: '瞎的', chineseSentence: '我們應該幫助盲人。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'should help', type: 'V' }, { text: 'blind people', type: 'O' }] },
+                { english: 'chubby', partOfSpeech: 'adj.', phonetics: "[ˈtʃʌbi]", sentence: 'The boy has a chubby face.', chinese: '圓胖的, 豐滿的', chineseSentence: '這個男孩有張胖嘟嘟的臉。', sentenceAnalysis: [{ text: 'The boy', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a chubby face', type: 'O' }] },
+                { english: 'deaf', partOfSpeech: 'adj.', phonetics: "[def]", sentence: 'Helen Keller was blind, deaf and dumb.', chinese: '聾的', chineseSentence: '海倫凱勒又瞎又聾又啞。', sentenceAnalysis: [{ text: 'Helen Keller', type: 'S' }, { text: 'was', type: 'V' }, { text: 'blind, deaf and dumb', type: 'C' }] },
+                { english: 'dumb', partOfSpeech: 'adj.', phonetics: "[dʌm]", sentence: 'Dumb dogs are dangerous.', chinese: '啞的', chineseSentence: '無聲狗，咬死人。', sentenceAnalysis: [{ text: 'Dumb dogs', type: 'S' }, { text: 'are', type: 'V' }, { text: 'dangerous', type: 'C' }] },
+                { english: 'fat', partOfSpeech: 'adj.', phonetics: "[fæt]", sentence: 'Don\'t eat too much fat.', chinese: '肥胖的', chineseSentence: '不要攝取太多脂肪。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: 'don\'t eat', type: 'V' }, { text: 'too much fat', type: 'O' }] },
+                { english: 'heavy', partOfSpeech: 'adj.', phonetics: "[ˈhevi]", sentence: 'The box is too heavy to carry.', chinese: '重的', chineseSentence: '這個箱子太重了提不動。', sentenceAnalysis: [{ text: 'The box', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too heavy to carry', type: 'C' }] },
+                { english: 'over-weight', partOfSpeech: 'adj.', phonetics: "[ˌoʊvərˈweɪt]", sentence: 'Over-weight is bad for health.', chinese: '過重的', chineseSentence: '過重有損健康。', sentenceAnalysis: [{ text: 'Over-weight', type: 'S' }, { text: 'is', type: 'V' }, { text: 'bad for health', type: 'C' }] },
+                { english: 'under-weight', partOfSpeech: 'adj.', phonetics: "[ˌʌndərˈweɪt]", sentence: 'Dad is under-weight because he eats too little.', chinese: '過輕的', chineseSentence: '爸爸體重過輕是因為他吃的太少。', sentenceAnalysis: [{ text: 'Dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'under-weight', type: 'C' }, { text: 'because he eats too little', type: 'A' }] },
+                { english: 'nice-looking', partOfSpeech: 'adj.', phonetics: "[ˌnaɪsˈlʊkɪŋ]", sentence: 'She is a nice-looking girl.', chinese: '好看的', chineseSentence: '她是個好看的女孩。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice-looking girl', type: 'C' }] }
+            ],
+            'P4': [
+                { english: 'old', partOfSpeech: 'adj.', phonetics: "[oʊld]", sentence: 'The dog is too old to run.', chinese: '年老的', chineseSentence: '這隻狗老得跑不動了。', sentenceAnalysis: [{ text: 'The dog', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too old to run', type: 'C' }] },
+                { english: 'young', partOfSpeech: 'adj.', phonetics: "[jʌŋ]", sentence: 'These young people are going to the party.', chinese: '年輕的', chineseSentence: '這些年輕人正要去參加宴會。', sentenceAnalysis: [{ text: 'These young people', type: 'S' }, { text: 'are going to', type: 'V' }, { text: 'the party', type: 'O' }] },
+                { english: 'short', partOfSpeech: 'adj.', phonetics: "[ʃɔːrt]", sentence: 'He is shorter than his sister.', chinese: '矮的', chineseSentence: '他比他姊姊矮。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'shorter than his sister', type: 'C' }] },
+                { english: 'tall', partOfSpeech: 'adj.', phonetics: "[tɔːl]", sentence: 'How tall is Yao Ming?', chinese: '高大的', chineseSentence: '姚明的身高多少？', sentenceAnalysis: [{ text: 'How tall', type: 'C' }, { text: 'is', type: 'V' }, { text: 'Yao Ming', type: 'S' }] },
+                { english: 'skinny', partOfSpeech: 'adj.', phonetics: "[ˈskɪni]", sentence: 'She is too skinny.', chinese: '極瘦的', chineseSentence: '她太瘦了。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too skinny', type: 'C' }] },
+                { english: 'thin', partOfSpeech: 'adj.', phonetics: "[θɪn]", sentence: 'Cathy wants to be thinner.', chinese: '瘦的', chineseSentence: '凱西想要變更瘦。', sentenceAnalysis: [{ text: 'Cathy', type: 'S' }, { text: 'wants', type: 'V' }, { text: 'to be thinner', type: 'O' }] },
+                { english: 'slender', partOfSpeech: 'adj.', phonetics: "[ˈslendər]", sentence: 'Everyone is looking at that slender lady.', chinese: '苗條的', chineseSentence: '大家都在看那個苗條的女士。', sentenceAnalysis: [{ text: 'Everyone', type: 'S' }, { text: 'is looking at', type: 'V' }, { text: 'that slender lady', type: 'O' }] },
+                { english: 'slim', partOfSpeech: 'adj.', phonetics: "[slɪm]", sentence: 'She keeps slim by eating little and exercising often.', chinese: '纖細的', chineseSentence: '她少吃多運動來維持身材苗條。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'keeps', type: 'V' }, { text: 'slim', type: 'O' }, { text: 'by eating little and exercising often', type: 'A' }] },
+                { english: 'active', partOfSpeech: 'adj.', phonetics: "[ˈæktɪv]", sentence: 'Tommy is an active boy.', chinese: '活潑的', chineseSentence: '湯米是個活潑的男孩。', sentenceAnalysis: [{ text: 'Tommy', type: 'S' }, { text: 'is', type: 'V' }, { text: 'an active boy', type: 'C' }] },
+                { english: 'shy', partOfSpeech: 'adj.', phonetics: "[ʃaɪ]", sentence: 'I am not shy at all.', chinese: '害羞的', chineseSentence: '我一點也不怕生。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'am not', type: 'V' }, { text: 'shy at all', type: 'C' }] },
+                { english: 'angry', partOfSpeech: 'adj.', phonetics: "[ˈæŋɡri]", sentence: 'Joy was angry with his dog yesterday.', chinese: '生氣的', chineseSentence: '喬依昨天對著他的狗發脾氣。', sentenceAnalysis: [{ text: 'Joy', type: 'S' }, { text: 'was', type: 'V' }, { text: 'angry', type: 'C' }, { text: 'with his dog yesterday', type: 'A' }] },
+                { english: 'bad', partOfSpeech: 'adj.', phonetics: "[bæd]", sentence: "It's bad to lie to your parents.", chinese: '壞的', chineseSentence: '對父母說謊是不好的。', sentenceAnalysis: [{ text: 'It', type: 'S' }, { text: "'s", type: 'V' }, { text: 'bad to lie to your parents', type: 'C' }] },
+                { english: 'good', partOfSpeech: 'adj.', phonetics: "[ɡʊd]", sentence: 'Everyone needs good friends in their life.', chinese: '好的', chineseSentence: '每個人生命中都需要幾個好朋友。', sentenceAnalysis: [{ text: 'Everyone', type: 'S' }, { text: 'needs', type: 'V' }, { text: 'good friends', type: 'O' }, { text: 'in their life', type: 'A' }] },
+                { english: 'bored', partOfSpeech: 'adj.', phonetics: "[bɔːrd]", sentence: "I am so bored but still don't want to do anything.", chinese: '(人)感覺厭煩的', chineseSentence: '我好無聊喔，但是又不想做任何事。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'am', type: 'V' }, { text: 'so bored', type: 'C' }, { text: "but still don't want to do anything", type: 'A' }] },
+                { english: 'boring', partOfSpeech: 'adj.', phonetics: "[ˈbɔːrɪŋ]", sentence: 'It is a boring class.', chinese: '乏味的', chineseSentence: '這堂課很乏味。', sentenceAnalysis: [{ text: 'It', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a boring class', type: 'C' }] },
+                { english: 'busy', partOfSpeech: 'adj.', phonetics: "[ˈbɪzi]", sentence: 'He was too busy to drink.', chinese: '忙碌的', chineseSentence: '他忙得沒空喝水。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'was', type: 'V' }, { text: 'too busy to drink', type: 'C' }] }
+            ],
+            'P5': [
+                { english: 'brave', partOfSpeech: 'adj.', phonetics: "[brev]", sentence: 'He is not brave enough to stop the fight.', chinese: '勇敢的', chineseSentence: '他還不夠勇敢去阻止那場打鬥。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is not', type: 'V' }, { text: 'brave enough to stop the fight', type: 'C' }] },
+                { english: 'childish', partOfSpeech: 'adj.', phonetics: "[ˈtʃaɪldɪʃ]", sentence: "Don't be so childish.", chinese: '幼稚的', chineseSentence: '不要這麼幼稚好嗎。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: "Don't be", type: 'V' }, { text: 'so childish', type: 'C' }] },
+                { english: 'childlike', partOfSpeech: 'adj.', phonetics: "[ˈtʃaɪldlaɪk]", sentence: 'She keeps a childlike mind no matter how old she is.', chinese: '孩子般的', chineseSentence: '她不論幾何年紀都仍然保有一顆赤子之心。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'keeps', type: 'V' }, { text: 'a childlike mind', type: 'O' }, { text: 'no matter how old she is', type: 'A' }] },
+                { english: 'clever', partOfSpeech: 'adj.', phonetics: "[ˈklevər]", sentence: 'He is such a clever boy!', chinese: '聰明的', chineseSentence: '這男孩真聰明!', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'such a clever boy', type: 'C' }] },
+                { english: 'intelligent', partOfSpeech: 'adj.', phonetics: "[ɪnˈtelɪdʒənt]", sentence: 'He is an intelligent student.', chinese: '聰明的', chineseSentence: '他是個聰明的學生。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'an intelligent student', type: 'C' }] },
+                { english: 'smart', partOfSpeech: 'adj.', phonetics: "[smɑːrt]", sentence: 'John is a smart businessman.', chinese: '聰明的', chineseSentence: '約翰是個精明的生意人。', sentenceAnalysis: [{ text: 'John', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a smart businessman', type: 'C' }] },
+                { english: 'wise', partOfSpeech: 'adj.', phonetics: "[waɪz]", sentence: 'Are you a wise guy?', chinese: '明智的', chineseSentence: '你是個聰明人嗎?', sentenceAnalysis: [{ text: 'Are', type: 'V' }, { text: 'you', type: 'S' }, { text: 'a wise guy', type: 'C' }] },
+                { english: 'careful', partOfSpeech: 'adj.', phonetics: "[ˈkerfəl]", sentence: 'Be careful with this machine.', chinese: '仔細的', chineseSentence: '小心處理這台機器。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: 'Be', type: 'V' }, { text: 'careful with this machine', type: 'C' }] },
+                { english: 'careless', partOfSpeech: 'adj.', phonetics: "[ˈkerləs]", sentence: 'He is careless about everything.', chinese: '粗心的', chineseSentence: '他對任何事都態度草率。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'careless about everything', type: 'C' }] },
+                { english: 'confident', partOfSpeech: 'adj.', phonetics: "[ˈkɑːnfədənt]", sentence: 'Sam was confident about what he was good at.', chinese: '有自信的', chineseSentence: '山姆對於自己拿手的東西都很有信心。', sentenceAnalysis: [{ text: 'Sam', type: 'S' }, { text: 'was', type: 'V' }, { text: 'confident about what he was good at', type: 'C' }] },
+                { english: 'considerate', partOfSpeech: 'adj.', phonetics: "[kənˈsɪdərət]", sentence: 'The nurse is very considerate to us.', chinese: '體貼的', chineseSentence: '護士相當照顧我們。', sentenceAnalysis: [{ text: 'The nurse', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very considerate to us', type: 'C' }] },
+                { english: 'cool', partOfSpeech: 'adj.', phonetics: "[kuːl]", sentence: 'She was cool toward her mother today.', chinese: '冷淡的', chineseSentence: '她今天對媽媽的態度非常冷淡。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'was', type: 'V' }, { text: 'cool', type: 'C' }, { text: 'toward her mother today', type: 'A' }] },
+                { english: 'crazy', partOfSpeech: 'adj.', phonetics: "[ˈkreɪzi]", sentence: 'People are crazy about Jeremy Lin recently.', chinese: '瘋狂的', chineseSentence: '人們最近對林書豪瘋狂。', sentenceAnalysis: [{ text: 'People', type: 'S' }, { text: 'are', type: 'V' }, { text: 'crazy', type: 'C' }, { text: 'about Jeremy Lin recently', type: 'A' }] },
+                { english: 'mad', partOfSpeech: 'adj.', phonetics: "[mæd]", sentence: 'She was mad at me for standing her up.', chinese: '發瘋的', chineseSentence: '她因為我放她鴿子而生我的氣。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'was', type: 'V' }, { text: 'mad at me', type: 'C' }, { text: 'for standing her up', type: 'A' }] },
+                { english: 'cruel', partOfSpeech: 'adj.', phonetics: "[ˈkruːəl]", sentence: "Please don't say cruel words.", chinese: '殘酷的', chineseSentence: '請不要說尖刻的話語。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: "don't say", type: 'V' }, { text: 'cruel words', type: 'O' }] },
+                { english: 'curious', partOfSpeech: 'adj.', phonetics: "[ˈkjʊriəs]", sentence: 'Kids are curious about everything.', chinese: '好奇的', chineseSentence: '小孩子對於任何事情都感到好奇。', sentenceAnalysis: [{ text: 'Kids', type: 'S' }, { text: 'are', type: 'V' }, { text: 'curious about everything', type: 'C' }] },
+                { english: 'diligent', partOfSpeech: 'adj.', phonetics: "[ˈdɪlɪdʒənt]", sentence: 'She is a diligent student.', chinese: '勤勉的', chineseSentence: '她是一個用功的學生。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a diligent student', type: 'C' }] }
+            ]
+        };
 
+        let currentCategory = 'P3';
         let currentIndex = 0;
         let currentDictationWordIndex;
         let isReadingContinuously = false;
@@ -216,37 +277,80 @@
         const checkBtn = document.getElementById('checkBtn');
         const nextDictationBtn = document.getElementById('nextDictationBtn');
         const dictationSpeechRateSelect = document.getElementById('dictationSpeechRateSelect');
+        
+        // Category elements
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        
+        // 目前作用中的單字列表
+        let activeWords = wordCategories[currentCategory];
 
         // Function to speak the word or sentence
         function speak(text, rate = 1.0) {
             if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
                 utterance.rate = rate;
                 window.speechSynthesis.speak(utterance);
             } else {
-                console.log('Sorry, your browser does not support text-to-speech.');
+                console.log('抱歉，您的瀏覽器不支援語音合成功能。');
             }
         }
+        
+        // --- 類別切換邏輯 ---
+        function updateCategoryButtonsUI(activeCategory) {
+            categoryButtons.forEach(btn => {
+                if (btn.dataset.category === activeCategory) {
+                    btn.classList.remove('bg-gray-300', 'text-gray-700');
+                    btn.classList.add('bg-blue-500', 'text-white');
+                } else {
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                    btn.classList.add('bg-gray-300', 'text-gray-700');
+                }
+            });
+        }
+
+        function changeCategory(newCategory) {
+            if (currentCategory === newCategory) return;
+
+            currentCategory = newCategory;
+            activeWords = wordCategories[currentCategory];
+            currentIndex = 0;
+            
+            updateCategoryButtonsUI(currentCategory);
+
+            if (!flashcardPage.classList.contains('hidden')) {
+                updateCard(currentIndex);
+            }
+            if (!dictationPage.classList.contains('hidden')) {
+                startDictation();
+            }
+        }
+        
+        categoryButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                changeCategory(btn.dataset.category);
+            });
+        });
+
 
         // --- 單字卡頁面邏輯 ---
         function updateCard(index) {
             currentIndex = index;
-            const currentWord = words[currentIndex];
+            const currentWord = activeWords[currentIndex];
             wordEl.textContent = currentWord.english;
             partOfSpeechEl.textContent = currentWord.partOfSpeech;
             phoneticsEl.textContent = currentWord.phonetics;
             definitionEl.textContent = currentWord.chinese;
             sentenceTranslationEl.textContent = currentWord.chineseSentence;
-            progressEl.textContent = `${currentIndex + 1} / ${words.length}`;
+            progressEl.textContent = `${currentIndex + 1} / ${activeWords.length}`;
             flashcard.classList.remove('flipped');
             
-            // 更新句子結構標示
             updateSentenceAnalysis(currentWord.sentenceAnalysis);
         }
 
         function updateSentenceAnalysis(analysisData) {
-            sentenceAnalysisEl.innerHTML = ''; // 清空舊的標示
+            sentenceAnalysisEl.innerHTML = ''; 
             analysisData.forEach(item => {
                 const wordContainer = document.createElement('div');
                 wordContainer.className = 'flex flex-col items-center';
@@ -267,7 +371,8 @@
             });
         }
 
-        flashcard.addEventListener('click', () => {
+        flashcard.addEventListener('click', (event) => {
+            if (event.target.closest('button')) return;
             if (!isReadingContinuously) {
                 flashcard.classList.toggle('flipped');
             }
@@ -276,13 +381,13 @@
         speakBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const rate = parseFloat(flashcardSpeechRateSelect.value);
-            speak(words[currentIndex].english, rate);
+            speak(activeWords[currentIndex].english, rate);
         });
 
         speakSentenceBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const rate = parseFloat(flashcardSpeechRateSelect.value);
-            speak(words[currentIndex].sentence, rate);
+            speak(activeWords[currentIndex].sentence, rate);
         });
 
         nextBtn.addEventListener('click', () => {
@@ -290,7 +395,7 @@
                 window.speechSynthesis.cancel();
                 isReadingContinuously = false;
             }
-            currentIndex = (currentIndex + 1) % words.length;
+            currentIndex = (currentIndex + 1) % activeWords.length;
             updateCard(currentIndex);
         });
 
@@ -299,7 +404,7 @@
                 window.speechSynthesis.cancel();
                 isReadingContinuously = false;
             }
-            currentIndex = (currentIndex - 1 + words.length) % words.length;
+            currentIndex = (currentIndex - 1 + activeWords.length) % activeWords.length;
             updateCard(currentIndex);
         });
 
@@ -307,33 +412,47 @@
             if (isReadingContinuously) {
                 window.speechSynthesis.cancel();
                 isReadingContinuously = false;
+                continuousBtn.textContent = '連續';
+                continuousBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                continuousBtn.classList.add('bg-purple-500', 'hover:bg-purple-600');
                 return;
             }
             
             isReadingContinuously = true;
+            continuousBtn.textContent = '停止';
+            continuousBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+            continuousBtn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+
             let currentContinuousIndex = currentIndex;
             
             function readWordWithRepetitions(wordIndex, repetition = 0) {
-                if (!isReadingContinuously || wordIndex >= words.length) {
+                if (!isReadingContinuously || wordIndex >= activeWords.length) {
                     isReadingContinuously = false;
+                    continuousBtn.click();
                     return;
                 }
                 
                 if (repetition < 3) {
                     updateCard(wordIndex);
                     const rate = parseFloat(flashcardSpeechRateSelect.value);
-                    speak(words[wordIndex].english, rate);
-                    setTimeout(() => {
-                        readWordWithRepetitions(wordIndex, repetition + 1);
-                    }, 700);
+                    const utterance = new SpeechSynthesisUtterance(activeWords[wordIndex].english);
+                    utterance.lang = 'en-US';
+                    utterance.rate = rate;
+                    utterance.onend = () => {
+                        if (isReadingContinuously) {
+                            setTimeout(() => readWordWithRepetitions(wordIndex, repetition + 1), 200);
+                        }
+                    };
+                    window.speechSynthesis.speak(utterance);
                 } else {
                     currentContinuousIndex++;
-                    if (currentContinuousIndex < words.length) {
+                    if (currentContinuousIndex < activeWords.length) {
                         setTimeout(() => {
                             readWordWithRepetitions(currentContinuousIndex, 0);
-                        }, 1000); // Wait 1 second before next word
+                        }, 1000);
                     } else {
                         isReadingContinuously = false;
+                        continuousBtn.click();
                     }
                 }
             }
@@ -342,26 +461,29 @@
 
         // --- 聽寫頁面邏輯 ---
         function startDictation() {
-            currentDictationWordIndex = Math.floor(Math.random() * words.length);
+            currentDictationWordIndex = Math.floor(Math.random() * activeWords.length);
             answerInput.value = '';
+            answerInput.disabled = false;
             resultMessage.textContent = '';
             checkBtn.classList.remove('hidden');
+            dictationProgress.textContent = `${activeWords.length} 個單字隨機抽考`;
         }
 
         dictationSpeakBtn.addEventListener('click', () => {
             const rate = parseFloat(dictationSpeechRateSelect.value);
-            speak(words[currentDictationWordIndex].english, rate);
+            speak(activeWords[currentDictationWordIndex].english, rate);
         });
 
         checkBtn.addEventListener('click', () => {
             const userAnswer = answerInput.value.trim().toLowerCase();
-            const correctAnswer = words[currentDictationWordIndex].english.toLowerCase();
+            const correctAnswer = activeWords[currentDictationWordIndex].english.toLowerCase();
 
             if (userAnswer === correctAnswer) {
                 resultMessage.textContent = '答對了！';
                 resultMessage.className = 'mt-4 text-2xl font-bold correct';
+                answerInput.disabled = true;
             } else {
-                resultMessage.textContent = '答錯了，請再試一次。';
+                resultMessage.textContent = `答錯了，正確答案是：${activeWords[currentDictationWordIndex].english}`;
                 resultMessage.className = 'mt-4 text-2xl font-bold incorrect';
             }
         });
@@ -386,10 +508,8 @@
             flashcardTab.classList.add('text-gray-500');
             dictationTab.classList.add('text-gray-500');
             
-            // Stop continuous reading when changing pages
             if (isReadingContinuously) {
-                window.speechSynthesis.cancel();
-                isReadingContinuously = false;
+                continuousBtn.click();
             }
 
             if (pageId === 'flashcard') {
@@ -409,9 +529,11 @@
         dictationTab.addEventListener('click', () => showPage('dictation'));
 
         window.onload = () => {
+            updateCategoryButtonsUI(currentCategory);
             showPage('flashcard');
         };
 
     </script>
 </body>
 </html>
+
