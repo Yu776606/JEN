@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單字卡</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans', 'Noto Sans TC', 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .flip-card {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 1.5rem;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+        .phonetics-font {
+            font-family: 'Noto Sans', sans-serif;
+        }
+        .tab-button.active {
+            color: #2563EB;
+            border-bottom: 2px solid #2563EB;
+        }
+        .theme-button.active {
+            background-color: #3B82F6;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-2xl mx-auto p-4 md:p-8">
+        <!-- 導覽標籤 -->
+        <div class="flex border-b mb-6">
+            <button id="flashcardTab" class="tab-button py-2 px-4 text-lg font-semibold transition-colors duration-200">單字卡</button>
+            <button id="dictationTab" class="tab-button py-2 px-4 text-lg font-semibold transition-colors duration-200">聽寫</button>
+            <button class="text-gray-500 py-2 px-4 text-lg font-semibold transition-colors duration-200">文章聽寫</button>
+        </div>
+
+        <!-- 單字卡頁面 -->
+        <div id="flashcardPage" class="space-y-6">
+            <!-- 主題按鈕 -->
+            <div id="flashcardThemes" class="flex flex-wrap justify-center gap-2 mb-4">
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="numbers">數字</button>
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="people">人物</button>
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="animals">動物與昆蟲</button>
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="food">飲食</button>
+            </div>
+            
+            <!-- 進度顯示 -->
+            <div id="progress" class="text-center text-gray-500 text-lg">1 / 3</div>
+
+            <!-- 發音速度選擇 -->
+            <div class="flex justify-center items-center mb-4">
+                <label for="flashcardSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
+                <select id="flashcardSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="1.0">正常速度</option>
+                    <option value="0.7">0.7 倍</option>
+                    <option value="0.5">0.5 倍</option>
+                </select>
+            </div>
+            
+            <!-- 卡片容器 -->
+            <div id="flashcard" class="flip-card w-full h-80 md:h-96 rounded-3xl cursor-pointer noselect">
+                <div id="flashcard-inner" class="flip-card-inner shadow-lg rounded-3xl">
+                    <!-- 卡片正面 (英文) -->
+                    <div class="flip-card-front bg-gradient-to-br from-blue-100 via-purple-100 to-blue-200">
+                        <h2 id="word" class="text-4xl md:text-6xl font-bold text-gray-800 text-center"></h2>
+                        <div class="flex flex-col items-center justify-center mb-2">
+                            <p id="partOfSpeech" class="text-xl text-gray-700"></p>
+                            <p id="phonetics" class="text-2xl text-gray-600 mt-1 phonetics-font"></p>
+                        </div>
+                        <!-- 句子結構標示 -->
+                        <div id="sentenceAnalysis" class="flex flex-wrap justify-center items-center gap-2 mt-2 text-lg md:text-xl"></div>
+                        
+                        <!-- 單字發音按鈕 -->
+                        <button id="speakBtn" class="absolute bottom-6 right-6 p-3 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                        </button>
+                        <!-- 句子發音按鈕 -->
+                        <button id="speakSentenceBtn" class="absolute bottom-6 left-6 p-3 font-semibold text-lg text-blue-600 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
+                            sentence
+                        </button>
+                    </div>
+                    <!-- 卡片反面 (中文) -->
+                    <div class="flip-card-back">
+                        <h2 id="definition" class="text-3xl md:text-5xl font-bold text-white text-center"></h2>
+                        <p id="sentence-translation" class="mt-4 text-xl md:text-2xl text-white text-center px-4"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 控制按鈕 -->
+            <div class="flex justify-center items-center gap-4">
+                <button id="prevBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">上一個</button>
+                <button id="nextBtn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-600 transition-colors">下一個</button>
+                <button id="continuousBtn" class="bg-purple-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-purple-600 transition-colors">連續</button>
+            </div>
+        </div>
+
+        <!-- 聽寫頁面 -->
+        <div id="dictationPage" class="space-y-6 hidden text-center">
+            <!-- 主題按鈕 -->
+            <div id="dictationThemes" class="flex flex-wrap justify-center gap-2 mb-4">
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="numbers">數字</button>
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="people">人物</button>
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="animals">動物與昆蟲</button>
+                <button class="theme-button py-2 px-4 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors" data-theme="food">飲食</button>
+            </div>
+
+            <div id="dictationProgress" class="text-center text-gray-500 text-lg"></div>
+            <p class="text-2xl font-bold text-gray-700 mt-8">請聽發音並拼出單字：</p>
+            
+            <div class="flex flex-col items-center justify-center h-48">
+                <!-- 發音速度選擇 -->
+                <div class="mb-4">
+                    <label for="dictationSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
+                    <select id="dictationSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="1.0">正常速度</option>
+                        <option value="0.7">0.7 倍</option>
+                        <option value="0.5">0.5 倍</option>
+                    </select>
+                </div>
+                <!-- 發音按鈕 -->
+                <button id="dictationSpeakBtn" class="p-8 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mt-8 px-4">
+                <input id="answerInput" type="text" placeholder="在此輸入答案" class="w-full max-w-lg p-4 text-center text-xl rounded-xl border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            </div>
+
+            <div id="resultMessage" class="mt-4 text-2xl font-bold"></div>
+
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button id="checkBtn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-600 transition-colors">檢查</button>
+                <button id="nextDictationBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">下一題</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allWords = {
+            numbers: [
+                { english: 'zero', partOfSpeech: 'n.', phonetics: "[ˈzɪəroʊ]", sentence: 'The score is zero to zero.', chinese: '零', chineseSentence: '比數是零比零。', sentenceAnalysis: [{ text: 'The score', type: 'S' }, { text: 'is', type: 'V' }, { text: 'zero to zero', type: 'C' }] },
+                { english: 'one', partOfSpeech: 'n.', phonetics: "[wʌn]", sentence: 'I have one red apple.', chinese: '一', chineseSentence: '我有一個紅色的蘋果。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'one red apple', type: 'O' }] },
+                { english: 'two', partOfSpeech: 'n.', phonetics: "[tuː]", sentence: 'Two dogs are playing in the park.', chinese: '二', chineseSentence: '有兩隻狗在公園裡玩。', sentenceAnalysis: [{ text: 'Two dogs', type: 'S' }, { text: 'are playing', type: 'V' }, { text: 'in the park', type: 'A' }] },
+                { english: 'three', partOfSpeech: 'n.', phonetics: "[θriː]", sentence: 'She has three friends.', chinese: '三', chineseSentence: '她有三個朋友。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'has', type: 'V' }, { text: 'three friends', type: 'O' }] },
+                { english: 'four', partOfSpeech: 'n.', phonetics: "[fɔːr]", sentence: 'We see four small birds.', chinese: '四', chineseSentence: '我們看見四隻小鳥。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'see', type: 'V' }, { text: 'four small birds', type: 'O' }] },
+                { english: 'five', partOfSpeech: 'n.', phonetics: "[faɪv]", sentence: 'I can count to five.', chinese: '五', chineseSentence: '我會數到五。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'can count', type: 'V' }, { text: 'to five', type: 'A' }] },
+                { english: 'six', partOfSpeech: 'n.', phonetics: "[sɪks]", sentence: 'There are six pencils on the table.', chinese: '六', chineseSentence: '桌子上有六支鉛筆。', sentenceAnalysis: [{ text: 'There', type: 'A' }, { text: 'are', type: 'V' }, { text: 'six pencils', type: 'S' }, { text: 'on the table', type: 'A' }] },
+                { english: 'seven', partOfSpeech: 'n.', phonetics: "[ˈsevən]", sentence: 'Seven days make one week.', chinese: '七', chineseSentence: '七天是一週。', sentenceAnalysis: [{ text: 'Seven days', type: 'S' }, { text: 'make', type: 'V' }, { text: 'one week', type: 'O' }] },
+                { english: 'eight', partOfSpeech: 'n.', phonetics: "[eɪt]", sentence: 'We have eight books.', chinese: '八', chineseSentence: '我們有八本書。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'have', type: 'V' }, { text: 'eight books', type: 'O' }] },
+                { english: 'nine', partOfSpeech: 'n.', phonetics: "[naɪn]", sentence: 'My friend is nine years old.', chinese: '九', chineseSentence: '我的朋友九歲。', sentenceAnalysis: [{ text: 'My friend', type: 'S' }, { text: 'is', type: 'V' }, { text: 'nine years old', type: 'C' }] },
+                { english: 'ten', partOfSpeech: 'n.', phonetics: "[ten]", sentence: 'I have ten fingers.', chinese: '十', chineseSentence: '我有十根手指。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'ten fingers', type: 'O' }] },
+                { english: 'eleven', partOfSpeech: 'n.', phonetics: "[ɪˈlevən]", sentence: 'He has eleven crayons.', chinese: '十一', chineseSentence: '他有十一支蠟筆。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'has', type: 'V' }, { text: 'eleven crayons', type: 'O' }] },
+                { english: 'twelve', partOfSpeech: 'n.', phonetics: "[twelv]", sentence: 'There are twelve months in a year.', chinese: '十二', chineseSentence: '一年有十二個月。', sentenceAnalysis: [{ text: 'There', type: 'A' }, { text: 'are', type: 'V' }, { text: 'twelve months', type: 'S' }, { text: 'in a year', type: 'A' }] },
+                { english: 'thirteen', partOfSpeech: 'n.', phonetics: "[θɜːrˈtiːn]", sentence: 'Thirteen is a number.', chinese: '十三', chineseSentence: '十三是一個數字。', sentenceAnalysis: [{ text: 'Thirteen', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a number', type: 'C' }] },
+                { english: 'fourteen', partOfSpeech: 'n.', phonetics: "[fɔːrˈtiːn]", sentence: 'My brother is fourteen years old.', chinese: '十四', chineseSentence: '我哥哥十四歲。', sentenceAnalysis: [{ text: 'My brother', type: 'S' }, { text: 'is', type: 'V' }, { text: 'fourteen years old', type: 'C' }] },
+                { english: 'fifteen', partOfSpeech: 'n.', phonetics: "[fɪfˈtiːn]", sentence: 'I have fifteen toy cars.', chinese: '十五', chineseSentence: '我有十五輛玩具車。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'fifteen toy cars', type: 'O' }] },
+                { english: 'sixteen', partOfSpeech: 'n.', phonetics: "[sɪksˈtiːn]", sentence: 'We need sixteen chairs.', chinese: '十六', chineseSentence: '我們需要十六張椅子。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'need', type: 'V' }, { text: 'sixteen chairs', type: 'O' }] },
+                { english: 'seventeen', partOfSpeech: 'n.', phonetics: "[ˌsevənˈtiːn]", sentence: 'There are seventeen students here.', chinese: '十七', chineseSentence: '這裡有十七位學生。', sentenceAnalysis: [{ text: 'There', type: 'A' }, { text: 'are', type: 'V' }, { text: 'seventeen students', type: 'S' }, { text: 'here', type: 'A' }] },
+                { english: 'eighteen', partOfSpeech: 'n.', phonetics: "[eɪˈtiːn]", sentence: 'Eighteen is my favorite number.', chinese: '十八', chineseSentence: '十八是我最喜歡的數字。', sentenceAnalysis: [{ text: 'Eighteen', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my favorite number', type: 'C' }] },
+                { english: 'nineteen', partOfSpeech: 'n.', phonetics: "[naɪnˈtiːn]", sentence: 'I saw nineteen butterflies.', chinese: '十九', chineseSentence: '我看到十九隻蝴蝶。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'saw', type: 'V' }, { text: 'nineteen butterflies', type: 'O' }] },
+                { english: 'twenty', partOfSpeech: 'n.', phonetics: "[ˈtwenti]", sentence: 'I have twenty dollars.', chinese: '二十', chineseSentence: '我有二十元。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'twenty dollars', type: 'O' }] },
+                { english: 'thirty', partOfSpeech: 'n.', phonetics: "[ˈθɜːrti]", sentence: 'This shirt costs thirty dollars.', chinese: '三十', chineseSentence: '這件襯衫三十元。', sentenceAnalysis: [{ text: 'This shirt', type: 'S' }, { text: 'costs', type: 'V' }, { text: 'thirty dollars', type: 'O' }] },
+                { english: 'forty', partOfSpeech: 'n.', phonetics: "[ˈfɔːrti]", sentence: 'Forty people came to the party.', chinese: '四十', chineseSentence: '四十個人來參加派對。', sentenceAnalysis: [{ text: 'Forty people', type: 'S' }, { text: 'came', type: 'V' }, { text: 'to the party', type: 'A' }] },
+                { english: 'fifty', partOfSpeech: 'n.', phonetics: "[ˈfɪfti]", sentence: 'He is fifty years old.', chinese: '五十', chineseSentence: '他五十歲了。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'fifty years old', type: 'C' }] },
+                { english: 'sixty', partOfSpeech: 'n.', phonetics: "[ˈsɪksti]", sentence: 'The bus holds sixty people.', chinese: '六十', chineseSentence: '這輛公車能載六十人。', sentenceAnalysis: [{ text: 'The bus', type: 'S' }, { text: 'holds', type: 'V' }, { text: 'sixty people', type: 'O' }] },
+                { english: 'seventy', partOfSpeech: 'n.', phonetics: "[ˈsevənti]", sentence: 'The number seventy comes after sixty-nine.', chinese: '七十', chineseSentence: '七十這個數字在六十九之後。', sentenceAnalysis: [{ text: 'The number seventy', type: 'S' }, { text: 'comes', type: 'V' }, { text: 'after sixty-nine', type: 'A' }] },
+                { english: 'eighty', partOfSpeech: 'n.', phonetics: "[ˈeɪti]", sentence: 'My grandma is eighty years old.', chinese: '八十', chineseSentence: '我奶奶八十歲了。', sentenceAnalysis: [{ text: 'My grandma', type: 'S' }, { text: 'is', type: 'V' }, { text: 'eighty years old', type: 'C' }] },
+                { english: 'ninety', partOfSpeech: 'n.', phonetics: "[ˈnaɪnti]", sentence: 'Ninety minutes is one and a half hours.', chinese: '九十', chineseSentence: '九十分鐘是一個半小時。', sentenceAnalysis: [{ text: 'Ninety minutes', type: 'S' }, { text: 'is', type: 'V' }, { text: 'one and a half hours', type: 'C' }] },
+                { english: 'hundred', partOfSpeech: 'n.', phonetics: "[ˈhʌndrəd]", sentence: 'I have one hundred cents.', chinese: '一百', chineseSentence: '我有一百美分。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'one hundred cents', type: 'O' }] },
+                { english: 'thousand', partOfSpeech: 'n.', phonetics: "[ˈθaʊzənd]", sentence: 'The book has one thousand pages.', chinese: '一千', chineseSentence: '這本書有一千頁。', sentenceAnalysis: [{ text: 'The book', type: 'S' }, { text: 'has', type: 'V' }, { text: 'one thousand pages', type: 'O' }] },
+                { english: 'million', partOfSpeech: 'n.', phonetics: "[ˈmɪljən]", sentence: 'One million is a very big number.', chinese: '一百萬', chineseSentence: '一百萬是個很大的數字。', sentenceAnalysis: [{ text: 'One million', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a very big number', type: 'C' }] },
+                { english: 'first', partOfSpeech: 'adj.', phonetics: "[fɜːrst]", sentence: 'This is my first time here.', chinese: '第一', chineseSentence: '這是我第一次來這裡。', sentenceAnalysis: [{ text: 'This', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my first time here', type: 'C' }] },
+                { english: 'second', partOfSpeech: 'adj.', phonetics: "[ˈsekənd]", sentence: 'He won second place.', chinese: '第二', chineseSentence: '他贏了第二名。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'won', type: 'V' }, { text: 'second place', type: 'O' }] },
+                { english: 'third', partOfSpeech: 'adj.', phonetics: "[θɜːrd]", sentence: 'This is the third book I read.', chinese: '第三', chineseSentence: '這是我讀的第三本書。', sentenceAnalysis: [{ text: 'This', type: 'S' }, { text: 'is', type: 'V' }, { text: 'the third book I read', type: 'C' }] },
+                { english: 'fourth', partOfSpeech: 'adj.', phonetics: "[fɔːrθ]", sentence: 'My fourth birthday is coming.', chinese: '第四', chineseSentence: '我的第四個生日快到了。', sentenceAnalysis: [{ text: 'My fourth birthday', type: 'S' }, { text: 'is coming', type: 'V' }] },
+                { english: 'fifth', partOfSpeech: 'adj.', phonetics: "[fɪfθ]", sentence: 'Today is the fifth day of the week.', chinese: '第五', chineseSentence: '今天是這週的第五天。', sentenceAnalysis: [{ text: 'Today', type: 'S' }, { text: 'is', type: 'V' }, { text: 'the fifth day of the week', type: 'C' }] },
+                { english: 'sixth', partOfSpeech: 'adj.', phonetics: "[sɪksθ]", sentence: 'He is the sixth person in line.', chinese: '第六', chineseSentence: '他是排隊的第六個人。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'the sixth person in line', type: 'C' }] },
+                { english: 'seventh', partOfSpeech: 'adj.', phonetics: "[ˈsevənθ]", sentence: 'The seventh month is July.', chinese: '第七', chineseSentence: '第七個月是七月。', sentenceAnalysis: [{ text: 'The seventh month', type: 'S' }, { text: 'is', type: 'V' }, { text: 'July', type: 'C' }] },
+                { english: 'eighth', partOfSpeech: 'adj.', phonetics: "[eɪtθ]", sentence: 'The concert is on the eighth of June.', chinese: '第八', chineseSentence: '音樂會在六月八日。', sentenceAnalysis: [{ text: 'The concert', type: 'S' }, { text: 'is', type: 'V' }, { text: 'on the eighth of June', type: 'A' }] },
+                { english: 'ninth', partOfSpeech: 'adj.', phonetics: "[naɪnθ]", sentence: 'This is my ninth book.', chinese: '第九', chineseSentence: '這是我的第九本書。', sentenceAnalysis: [{ text: 'This', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my ninth book', type: 'C' }] },
+                { english: 'tenth', partOfSpeech: 'adj.', phonetics: "[tenθ]", sentence: 'He is the tenth student to arrive.', chinese: '第十', chineseSentence: '他是第十個到達的學生。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'the tenth student to arrive', type: 'C' }] },
+                { english: 'eleventh', partOfSpeech: 'adj.', phonetics: "[ɪˈlevənθ]", sentence: 'My birthday is on the eleventh.', chinese: '第十一', chineseSentence: '我的生日是十一號。', sentenceAnalysis: [{ text: 'My birthday', type: 'S' }, { text: 'is', type: 'V' }, { text: 'on the eleventh', type: 'A' }] },
+                { english: 'twelfth', partOfSpeech: 'adj.', phonetics: "[twelfθ]", sentence: 'Today is the twelfth day of the month.', chinese: '第十二', chineseSentence: '今天是這個月的第十二天。', sentenceAnalysis: [{ text: 'Today', type: 'S' }, { text: 'is', type: 'V' }, { text: 'the twelfth day of the month', type: 'C' }] },
+                { english: 'half', partOfSpeech: 'n.', phonetics: "[hæf]", sentence: 'I want half of the pie.', chinese: '一半', chineseSentence: '我想要一半的派。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'want', type: 'V' }, { text: 'half of the pie', type: 'O' }] },
+                { english: 'double', partOfSpeech: 'adj.', phonetics: "[ˈdʌbl]", sentence: 'He ordered a double cheeseburger.', chinese: '兩倍的', chineseSentence: '他點了一個雙層起司漢堡。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'ordered', type: 'V' }, { text: 'a double cheeseburger', type: 'O' }] },
+                { english: 'couple', partOfSpeech: 'n.', phonetics: "[ˈkʌpl]", sentence: 'They are a happy couple.', chinese: '一對', chineseSentence: '他們是一對快樂的夫妻。', sentenceAnalysis: [{ text: 'They', type: 'S' }, { text: 'are', type: 'V' }, { text: 'a happy couple', type: 'C' }] },
+                { english: 'few', partOfSpeech: 'adj.', phonetics: "[fjuː]", sentence: 'I have a few books to read.', chinese: '一些', chineseSentence: '我有一些書要讀。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'a few books', type: 'O' }, { text: 'to read', type: 'A' }] },
+                { english: 'many', partOfSpeech: 'adj.', phonetics: "[ˈmeni]", sentence: 'She has many friends.', chinese: '許多', chineseSentence: '她有許多朋友。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'has', type: 'V' }, { text: 'many friends', type: 'O' }] },
+                { english: 'much', partOfSpeech: 'adj.', phonetics: "[mʌtʃ]", sentence: 'There is much water in the river.', chinese: '許多', chineseSentence: '河裡有許多水。', sentenceAnalysis: [{ text: 'There', type: 'A' }, { text: 'is', type: 'V' }, { text: 'much water', type: 'S' }, { text: 'in the river', type: 'A' }] },
+                { english: 'some', partOfSpeech: 'adj.', phonetics: "[sʌm]", sentence: 'I need some help with this.', chinese: '一些', chineseSentence: '我需要一些幫助。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'some help', type: 'O' }, { text: 'with this', type: 'A' }] },
+                { english: 'all', partOfSpeech: 'adj.', phonetics: "[ɔːl]", sentence: 'All students are in the classroom.', chinese: '全部', chineseSentence: '所有學生都在教室裡。', sentenceAnalysis: [{ text: 'All students', type: 'S' }, { text: 'are', type: 'V' }, { text: 'in the classroom', type: 'A' }] },
+                { english: 'whole', partOfSpeech: 'adj.', phonetics: "[hoʊl]", sentence: 'I ate the whole cake.', chinese: '整個', chineseSentence: '我吃了一整個蛋糕。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'ate', type: 'V' }, { text: 'the whole cake', type: 'O' }] },
+                { english: 'every', partOfSpeech: 'adj.', phonetics: "[ˈevri]", sentence: 'Every day is a new day.', chinese: '每個', chineseSentence: '每一天都是新的一天。', sentenceAnalysis: [{ text: 'Every day', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a new day', type: 'C' }] },
+                { english: 'each', partOfSpeech: 'adj.', phonetics: "[iːtʃ]", sentence: 'Each student has a book.', chinese: '每個', chineseSentence: '每個學生都有一本書。', sentenceAnalysis: [{ text: 'Each student', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a book', type: 'O' }] },
+                { english: 'both', partOfSpeech: 'adj.', phonetics: "[boʊθ]", sentence: 'Both of my parents are doctors.', chinese: '兩者都', chineseSentence: '我的父母兩位都是醫生。', sentenceAnalysis: [{ text: 'Both of my parents', type: 'S' }, { text: 'are', type: 'V' }, { text: 'doctors', type: 'C' }] },
+                { english: 'several', partOfSpeech: 'adj.', phonetics: "[ˈsevrəl]", sentence: 'I have several pens.', chinese: '幾個', chineseSentence: '我有好幾支筆。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'several pens', type: 'O' }] },
+                { english: 'enough', partOfSpeech: 'adj.', phonetics: "[ɪˈnʌf]", sentence: 'I have enough money.', chinese: '足夠的', chineseSentence: '我有足夠的錢。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'enough money', type: 'O' }] },
+                { english: 'any', partOfSpeech: 'adj.', phonetics: "[ˈeni]", sentence: 'Do you have any questions?', chinese: '任何', chineseSentence: '你有任何問題嗎？', sentenceAnalysis: [{ text: 'Do you have', type: 'V+S' }, { text: 'any questions', type: 'O' }] },
+                { english: 'no', partOfSpeech: 'adj.', phonetics: "[noʊ]", sentence: 'There is no milk in the fridge.', chinese: '沒有', chineseSentence: '冰箱裡沒有牛奶。', sentenceAnalysis: [{ text: 'There', type: 'A' }, { text: 'is', type: 'V' }, { text: 'no milk', type: 'S' }, { text: 'in the fridge', type: 'A' }] },
+                { english: 'none', partOfSpeech: 'n.', phonetics: "[nʌn]", sentence: 'None of the students are here.', chinese: '沒有一個', chineseSentence: '學生們沒有一個在這裡。', sentenceAnalysis: [{ text: 'None of the students', type: 'S' }, { text: 'are', type: 'V' }, { text: 'here', type: 'A' }] },
+                { english: 'less', partOfSpeech: 'adj.', phonetics: "[les]", sentence: 'I have less water than you.', chinese: '較少的', chineseSentence: '我比你少水。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'less water', type: 'O' }, { text: 'than you', type: 'A' }] },
+                { english: 'more', partOfSpeech: 'adj.', phonetics: "[mɔːr]", sentence: 'He needs more time.', chinese: '更多', chineseSentence: '他需要更多時間。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'needs', type: 'V' }, { text: 'more time', type: 'O' }] },
+                { english: 'most', partOfSpeech: 'adj.', phonetics: "[moʊst]", sentence: 'Most people like music.', chinese: '大多數', chineseSentence: '大多數人喜歡音樂。', sentenceAnalysis: [{ text: 'Most people', type: 'S' }, { text: 'like', type: 'V' }, { text: 'music', type: 'O' }] },
+                { english: 'plus', partOfSpeech: 'prep.', phonetics: "[plʌs]", sentence: 'One plus one is two.', chinese: '加', chineseSentence: '一加一是二。', sentenceAnalysis: [{ text: 'One', type: 'S' }, { text: 'plus one', type: 'A' }, { text: 'is', type: 'V' }, { text: 'two', type: 'C' }] },
+                { english: 'minus', partOfSpeech: 'prep.', phonetics: "[ˈmaɪnəs]", sentence: 'Ten minus two is eight.', chinese: '減', chineseSentence: '十減二是八。', sentenceAnalysis: [{ text: 'Ten', type: 'S' }, { text: 'minus two', type: 'A' }, { text: 'is', type: 'V' }, { text: 'eight', type: 'C' }] },
+                { english: 'pair', partOfSpeech: 'n.', phonetics: "[peər]", sentence: 'I need a new pair of shoes.', chinese: '一雙', chineseSentence: '我需要一雙新鞋。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'a new pair of shoes', type: 'O' }] },
+                { english: 'score', partOfSpeech: 'n.', phonetics: "[skɔːr]", sentence: 'The final score is five to three.', chinese: '分數', chineseSentence: '最後的比數是五比三。', sentenceAnalysis: [{ text: 'The final score', type: 'S' }, { text: 'is', type: 'V' }, { text: 'five to three', type: 'C' }] },
+                { english: 'dozen', partOfSpeech: 'n.', phonetics: "[ˈdʌzn]", sentence: 'I bought a dozen eggs.', chinese: '一打', chineseSentence: '我買了一打雞蛋。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'bought', type: 'V' }, { text: 'a dozen eggs', type: 'O' }] }
+            ],
+            people: [
+                { english: 'adult', partOfSpeech: 'n.', phonetics: "[ˈædʌlt]", sentence: 'My mom is a kind adult.', chinese: '成人', chineseSentence: '我媽媽是一個善良的成人。', sentenceAnalysis: [{ text: 'My mom', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a kind adult', type: 'C' }] },
+                { english: 'angel', partOfSpeech: 'n.', phonetics: "[ˈeɪndʒəl]", sentence: 'She sings like an angel.', chinese: '天使', chineseSentence: '她唱歌像個天使。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'sings', type: 'V' }, { text: 'like an angel', type: 'A' }] },
+                { english: 'baby', partOfSpeech: 'n.', phonetics: "[ˈbeɪbi]", sentence: 'The baby is sleeping now.', chinese: '嬰兒', chineseSentence: '寶寶現在正在睡覺。', sentenceAnalysis: [{ text: 'The baby', type: 'S' }, { text: 'is sleeping', type: 'V' }, { text: 'now', type: 'A' }] },
+                { english: 'boy', partOfSpeech: 'n.', phonetics: "[bɔɪ]", sentence: 'That boy is my brother.', chinese: '男孩', chineseSentence: '那個男孩是我的弟弟。', sentenceAnalysis: [{ text: 'That boy', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my brother', type: 'C' }] },
+                { english: 'child', partOfSpeech: 'n.', phonetics: "[tʃaɪld]", sentence: 'A child is playing with a ball.', chinese: '小孩', chineseSentence: '一個小孩正在玩球。', sentenceAnalysis: [{ text: 'A child', type: 'S' }, { text: 'is playing', type: 'V' }, { text: 'with a ball', type: 'A' }] },
+                { english: 'couple', partOfSpeech: 'n.', phonetics: "[ˈkʌpl]", sentence: 'The young couple walks together.', chinese: '情侶、夫妻', chineseSentence: '那對年輕情侶一起散步。', sentenceAnalysis: [{ text: 'The young couple', type: 'S' }, { text: 'walks', type: 'V' }, { text: 'together', type: 'A' }] },
+                { english: 'customer', partOfSpeech: 'n.', phonetics: "[ˈkʌstəmər]", sentence: 'A customer is buying a toy.', chinese: '顧客', chineseSentence: '一個顧客正在買玩具。', sentenceAnalysis: [{ text: 'A customer', type: 'S' }, { text: 'is buying', type: 'V' }, { text: 'a toy', type: 'O' }] },
+                { english: 'fool', partOfSpeech: 'n.', phonetics: "[fuːl]", sentence: 'Don\'t be a fool.', chinese: '呆子', chineseSentence: '別當個呆子。', sentenceAnalysis: [{ text: 'You (implied)', type: 'S' }, { text: 'don\'t be', type: 'V' }, { text: 'a fool', type: 'C' }] },
+                { english: 'genius', partOfSpeech: 'n.', phonetics: "[ˈdʒiːniəs]", sentence: 'He is a math genius.', chinese: '天才', chineseSentence: '他是數學天才。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a math genius', type: 'C' }] },
+                { english: 'gentleman', partOfSpeech: 'n.', phonetics: "[ˈdʒentlmən]", sentence: 'He is a true gentleman.', chinese: '紳士', chineseSentence: '他是一位真正的紳士。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a true gentleman', type: 'C' }] },
+                { english: 'giant', partOfSpeech: 'n.', phonetics: "[ˈdʒaɪənt]", sentence: 'The giant is very tall.', chinese: '巨人', chineseSentence: '那個巨人非常高。', sentenceAnalysis: [{ text: 'The giant', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very tall', type: 'C' }] },
+                { english: 'girl', partOfSpeech: 'n.', phonetics: "[ɡɜːrl]", sentence: 'The girl has a cat.', chinese: '女孩', chineseSentence: '那個女孩有一隻貓。', sentenceAnalysis: [{ text: 'The girl', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a cat', type: 'O' }] },
+                { english: 'guest', partOfSpeech: 'n.', phonetics: "[ɡest]", sentence: 'We have a guest for dinner.', chinese: '客人', chineseSentence: '我們有客人來吃晚餐。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'have', type: 'V' }, { text: 'a guest', type: 'O' }, { text: 'for dinner', type: 'A' }] },
+                { english: 'guy', partOfSpeech: 'n.', phonetics: "[ɡaɪ]", sentence: 'That guy is my friend.', chinese: '傢伙', chineseSentence: '那個傢伙是我的朋友。', sentenceAnalysis: [{ text: 'That guy', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my friend', type: 'C' }] },
+                { english: 'hero', partOfSpeech: 'n.', phonetics: "[ˈhɪəroʊ]", sentence: 'My dad is my hero.', chinese: '英雄', chineseSentence: '我爸爸是我的英雄。', sentenceAnalysis: [{ text: 'My dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my hero', type: 'C' }] },
+                { english: 'host', partOfSpeech: 'n.', phonetics: "[hoʊst]", sentence: 'The host greets everyone.', chinese: '男主人', chineseSentence: '男主人向大家打招呼。', sentenceAnalysis: [{ text: 'The host', type: 'S' }, { text: 'greets', type: 'V' }, { text: 'everyone', type: 'O' }] },
+                { english: 'kid', partOfSpeech: 'n.', phonetics: "[kɪd]", sentence: 'The kid is playing outside.', chinese: '孩童', chineseSentence: '那個孩子在外面玩。', sentenceAnalysis: [{ text: 'The kid', type: 'S' }, { text: 'is playing', type: 'V' }, { text: 'outside', type: 'A' }] },
+                { english: 'king', partOfSpeech: 'n.', phonetics: "[kɪŋ]", sentence: 'The king lives in a castle.', chinese: '國王', chineseSentence: '國王住在城堡裡。', sentenceAnalysis: [{ text: 'The king', type: 'S' }, { text: 'lives', type: 'V' }, { text: 'in a castle', type: 'A' }] },
+                { english: 'lady', partOfSpeech: 'n.', phonetics: "[ˈleɪdi]", sentence: 'That lady is very kind.', chinese: '女士', chineseSentence: '那位女士非常和藹。', sentenceAnalysis: [{ text: 'That lady', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very kind', type: 'C' }] },
+                { english: 'male', partOfSpeech: 'n.', phonetics: "[meɪl]", sentence: 'He is a male.', chinese: '男性', chineseSentence: '他是個男性。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a male', type: 'C' }] },
+                { english: 'man', partOfSpeech: 'n.', phonetics: "[mæn]", sentence: 'The man is a teacher.', chinese: '男人', chineseSentence: '那個男人是位老師。', sentenceAnalysis: [{ text: 'The man', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a teacher', type: 'C' }] },
+                { english: 'master', partOfSpeech: 'n.', phonetics: "[ˈmæstər]", sentence: 'He is a cooking master.', chinese: '大師', chineseSentence: '他是一位烹飪大師。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a cooking master', type: 'C' }] },
+                { english: 'neighbor', partOfSpeech: 'n.', phonetics: "[ˈneɪbər]", sentence: 'My neighbor has a big garden.', chinese: '鄰居', chineseSentence: '我的鄰居有一個大花園。', sentenceAnalysis: [{ text: 'My neighbor', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a big garden', type: 'O' }] },
+                { english: 'partner', partOfSpeech: 'n.', phonetics: "[ˈpɑːrtnər]", sentence: 'My partner and I play chess.', chinese: '夥伴', chineseSentence: '我和我的夥伴下西洋棋。', sentenceAnalysis: [{ text: 'My partner and I', type: 'S' }, { text: 'play', type: 'V' }, { text: 'chess', type: 'O' }] },
+                { english: 'people', partOfSpeech: 'n.', phonetics: "[ˈpiːpl]", sentence: 'Many people are at the park.', chinese: '人們', chineseSentence: '很多人在公園裡。', sentenceAnalysis: [{ text: 'Many people', type: 'S' }, { text: 'are', type: 'V' }, { text: 'at the park', type: 'A' }] },
+                { english: 'person', partOfSpeech: 'n.', phonetics: "[ˈpɜːrsn]", sentence: 'He is a nice person.', chinese: '人', chineseSentence: '他是個好人。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice person', type: 'C' }] },
+                { english: 'prince', partOfSpeech: 'n.', phonetics: "[prɪns]", sentence: 'The prince lives in a big castle.', chinese: '王子', chineseSentence: '王子住在一座大城堡裡。', sentenceAnalysis: [{ text: 'The prince', type: 'S' }, { text: 'lives', type: 'V' }, { text: 'in a big castle', type: 'A' }] },
+                { english: 'princess', partOfSpeech: 'n.', phonetics: "[prɪnˈses]", sentence: 'Every girl wants to be a princess.', chinese: '公主', chineseSentence: '每個女孩都想成為公主。', sentenceAnalysis: [{ text: 'Every girl', type: 'S' }, { text: 'wants', type: 'V' }, { text: 'to be a princess', type: 'O' }] },
+                { english: 'queen', partOfSpeech: 'n.', phonetics: "[kwiːn]", sentence: 'The queen wears a beautiful crown.', chinese: '皇后', chineseSentence: '皇后戴著一頂美麗的皇冠。', sentenceAnalysis: [{ text: 'The queen', type: 'S' }, { text: 'wears', type: 'V' }, { text: 'a beautiful crown', type: 'O' }] },
+                { english: 'stranger', partOfSpeech: 'n.', phonetics: "[ˈstreɪndʒər]", sentence: 'Do not talk to a stranger.', chinese: '陌生人', chineseSentence: '不要跟陌生人說話。', sentenceAnalysis: [{ text: 'You (implied)', type: 'S' }, { text: 'do not talk', type: 'V' }, { text: 'to a stranger', type: 'A' }] },
+                { english: 'tourist', partOfSpeech: 'n.', phonetics: "[ˈtʊərɪst]", sentence: 'Many tourists visit Taipei 101.', chinese: '觀光客', chineseSentence: '許多觀光客造訪台北101。', sentenceAnalysis: [{ text: 'Many tourists', type: 'S' }, { text: 'visit', type: 'V' }, { text: 'Taipei 101', type: 'O' }] },
+                { english: 'visitor', partOfSpeech: 'n.', phonetics: "[ˈvɪzɪtər]", sentence: 'We have a visitor today.', chinese: '訪客', chineseSentence: '我們今天有訪客。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'have', type: 'V' }, { text: 'a visitor', type: 'O' }, { text: 'today', type: 'A' }] },
+                { english: 'woman', partOfSpeech: 'n.', phonetics: "[ˈwʊmən]", sentence: 'That woman is my teacher.', chinese: '女人', chineseSentence: '那位女人是我的老師。', sentenceAnalysis: [{ text: 'That woman', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my teacher', type: 'C' }] }
+            ],
+            animals: [
+                { english: 'ant', partOfSpeech: 'n.', phonetics: "[ænt]", sentence: 'An ant is very small.', chinese: '螞蟻', chineseSentence: '螞蟻非常小。', sentenceAnalysis: [{ text: 'An ant', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very small', type: 'C' }] },
+                { english: 'ape', partOfSpeech: 'n.', phonetics: "[eɪp]", sentence: 'An ape looks like a monkey.', chinese: '猿猴', chineseSentence: '猿猴看起來像猴子。', sentenceAnalysis: [{ text: 'An ape', type: 'S' }, { text: 'looks', type: 'V' }, { text: 'like a monkey', type: 'C' }] },
+                { english: 'bat', partOfSpeech: 'n.', phonetics: "[bæt]", sentence: 'A bat can fly at night.', chinese: '蝙蝠', chineseSentence: '蝙蝠在晚上會飛。', sentenceAnalysis: [{ text: 'A bat', type: 'S' }, { text: 'can fly', type: 'V' }, { text: 'at night', type: 'A' }] },
+                { english: 'bear', partOfSpeech: 'n.', phonetics: "[beər]", sentence: 'A bear loves to eat honey.', chinese: '熊', chineseSentence: '熊喜歡吃蜂蜜。', sentenceAnalysis: [{ text: 'A bear', type: 'S' }, { text: 'loves', type: 'V' }, { text: 'to eat honey', type: 'O' }] },
+                { english: 'bird', partOfSpeech: 'n.', phonetics: "[bɜːrd]", sentence: 'A little bird is singing.', chinese: '鳥', chineseSentence: '一隻小鳥正在唱歌。', sentenceAnalysis: [{ text: 'A little bird', type: 'S' }, { text: 'is singing', type: 'V' }] },
+                { english: 'butterfly', partOfSpeech: 'n.', phonetics: "[ˈbʌtərflaɪ]", sentence: 'I see a beautiful butterfly.', chinese: '蝴蝶', chineseSentence: '我看到一隻美麗的蝴蝶。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'see', type: 'V' }, { text: 'a beautiful butterfly', type: 'O' }] },
+                { english: 'camel', partOfSpeech: 'n.', phonetics: "[ˈkæməl]", sentence: 'A camel lives in the desert.', chinese: '駱駝', chineseSentence: '駱駝住在沙漠裡。', sentenceAnalysis: [{ text: 'A camel', type: 'S' }, { text: 'lives', type: 'V' }, { text: 'in the desert', type: 'A' }] },
+                { english: 'cat', partOfSpeech: 'n.', phonetics: "[kæt]", sentence: 'My cat likes to sleep.', chinese: '貓', chineseSentence: '我的貓喜歡睡覺。', sentenceAnalysis: [{ text: 'My cat', type: 'S' }, { text: 'likes', type: 'V' }, { text: 'to sleep', type: 'O' }] },
+                { english: 'chicken', partOfSpeech: 'n.', phonetics: "[ˈtʃɪkɪn]", sentence: 'The chicken is eating corn.', chinese: '雞', chineseSentence: '那隻雞正在吃玉米。', sentenceAnalysis: [{ text: 'The chicken', type: 'S' }, { text: 'is eating', type: 'V' }, { text: 'corn', type: 'O' }] },
+                { english: 'cock', partOfSpeech: 'n.', phonetics: "[kɑːk]", sentence: 'The cock crows in the morning.', chinese: '公雞', chineseSentence: '公雞在早上啼叫。', sentenceAnalysis: [{ text: 'The cock', type: 'S' }, { text: 'crows', type: 'V' }, { text: 'in the morning', type: 'A' }] },
+                { english: 'cow', partOfSpeech: 'n.', phonetics: "[kaʊ]", sentence: 'A cow gives us milk.', chinese: '乳牛', chineseSentence: '乳牛給我們牛奶。', sentenceAnalysis: [{ text: 'A cow', type: 'S' }, { text: 'gives', type: 'V' }, { text: 'us milk', type: 'O' }] },
+                { english: 'crab', partOfSpeech: 'n.', phonetics: "[kræb]", sentence: 'The crab walks sideways.', chinese: '螃蟹', chineseSentence: '螃蟹橫著走。', sentenceAnalysis: [{ text: 'The crab', type: 'S' }, { text: 'walks', type: 'V' }, { text: 'sideways', type: 'A' }] },
+                { english: 'crocodile', partOfSpeech: 'n.', phonetics: "[ˈkrɑːkədaɪl]", sentence: 'A crocodile has big teeth.', chinese: '鱷魚', chineseSentence: '鱷魚有大牙齒。', sentenceAnalysis: [{ text: 'A crocodile', type: 'S' }, { text: 'has', type: 'V' }, { text: 'big teeth', type: 'O' }] },
+                { english: 'deer', partOfSpeech: 'n.', phonetics: "[dɪər]", sentence: 'We saw a deer in the forest.', chinese: '鹿', chineseSentence: '我們在森林裡看見一隻鹿。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'saw', type: 'V' }, { text: 'a deer', type: 'O' }, { text: 'in the forest', type: 'A' }] },
+                { english: 'dinosaur', partOfSpeech: 'n.', phonetics: "[ˈdaɪnəsɔːr]", sentence: 'A dinosaur is a big animal from the past.', chinese: '恐龍', chineseSentence: '恐龍是一種來自過去的大動物。', sentenceAnalysis: [{ text: 'A dinosaur', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a big animal from the past', type: 'C' }] },
+                { english: 'dog', partOfSpeech: 'n.', phonetics: "[dɔːɡ]", sentence: 'The dog is barking loudly.', chinese: '狗', chineseSentence: '那隻狗叫得很大聲。', sentenceAnalysis: [{ text: 'The dog', type: 'S' }, { text: 'is barking', type: 'V' }, { text: 'loudly', type: 'A' }] },
+                { english: 'donkey', partOfSpeech: 'n.', phonetics: "[ˈdɔːŋki]", sentence: 'The donkey is carrying a heavy bag.', chinese: '驢子', chineseSentence: '這頭驢子正背著一個沉重的包包。', sentenceAnalysis: [{ text: 'The donkey', type: 'S' }, { text: 'is carrying', type: 'V' }, { text: 'a heavy bag', type: 'O' }] },
+                { english: 'duck', partOfSpeech: 'n.', phonetics: "[dʌk]", sentence: 'A duck can swim well.', chinese: '鴨子', chineseSentence: '鴨子很會游泳。', sentenceAnalysis: [{ text: 'A duck', type: 'S' }, { text: 'can swim', type: 'V' }, { text: 'well', type: 'A' }] },
+                { english: 'eagle', partOfSpeech: 'n.', phonetics: "[ˈiːɡl]", sentence: 'An eagle can fly high.', chinese: '老鷹', chineseSentence: '老鷹能飛得很高。', sentenceAnalysis: [{ text: 'An eagle', type: 'S' }, { text: 'can fly', type: 'V' }, { text: 'high', type: 'A' }] },
+                { english: 'elephant', partOfSpeech: 'n.', phonetics: "[ˈelɪfənt]", sentence: 'An elephant has a long nose.', chinese: '大象', chineseSentence: '大象有長長的鼻子。', sentenceAnalysis: [{ text: 'An elephant', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a long nose', type: 'O' }] },
+                { english: 'fish', partOfSpeech: 'n.', phonetics: "[fɪʃ]", sentence: 'I want to eat a fish.', chinese: '魚', chineseSentence: '我想吃一條魚。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'want', type: 'V' }, { text: 'to eat a fish', type: 'O' }] },
+                { english: 'fly', partOfSpeech: 'n.', phonetics: "[flaɪ]", sentence: 'I see a fly on the window.', chinese: '蒼蠅', chineseSentence: '我在窗戶上看到一隻蒼蠅。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'see', type: 'V' }, { text: 'a fly', type: 'O' }, { text: 'on the window', type: 'A' }] },
+                { english: 'fox', partOfSpeech: 'n.', phonetics: "[fɑːks]", sentence: 'A fox is a smart animal.', chinese: '狐狸', chineseSentence: '狐狸是一種聰明的動物。', sentenceAnalysis: [{ text: 'A fox', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a smart animal', type: 'C' }] },
+                { english: 'frog', partOfSpeech: 'n.', phonetics: "[frɑːɡ]", sentence: 'A frog can jump high.', chinese: '青蛙', chineseSentence: '青蛙可以跳得很高。', sentenceAnalysis: [{ text: 'A frog', type: 'S' }, { text: 'can jump', type: 'V' }, { text: 'high', type: 'A' }] },
+                { english: 'goat', partOfSpeech: 'n.', phonetics: "[ɡoʊt]", sentence: 'A goat eats grass.', chinese: '山羊', chineseSentence: '山羊吃草。', sentenceAnalysis: [{ text: 'A goat', type: 'S' }, { text: 'eats', type: 'V' }, { text: 'grass', type: 'O' }] },
+                { english: 'goose', partOfSpeech: 'n.', phonetics: "[ɡuːs]", sentence: 'The goose is walking slowly.', chinese: '鵝', chineseSentence: '那隻鵝走得很慢。', sentenceAnalysis: [{ text: 'The goose', type: 'S' }, { text: 'is walking', type: 'V' }, { text: 'slowly', type: 'A' }] },
+                { english: 'hen', partOfSpeech: 'n.', phonetics: "[hen]", sentence: 'The hen lays an egg.', chinese: '母雞', chineseSentence: '母雞下了一顆蛋。', sentenceAnalysis: [{ text: 'The hen', type: 'S' }, { text: 'lays', type: 'V' }, { text: 'an egg', type: 'O' }] },
+                { english: 'hippo', partOfSpeech: 'n.', phonetics: "[ˈhɪpoʊ]", sentence: 'A hippo loves to stay in the water.', chinese: '河馬', chineseSentence: '河馬喜歡待在水裡。', sentenceAnalysis: [{ text: 'A hippo', type: 'S' }, { text: 'loves', type: 'V' }, { text: 'to stay in the water', type: 'O' }] },
+                { english: 'horse', partOfSpeech: 'n.', phonetics: "[hɔːrs]", sentence: 'A horse runs very fast.', chinese: '馬', chineseSentence: '馬跑得很快。', sentenceAnalysis: [{ text: 'A horse', type: 'S' }, { text: 'runs', type: 'V' }, { text: 'very fast', type: 'A' }] },
+                { english: 'insect', partOfSpeech: 'n.', phonetics: "[ˈɪnsekts]", sentence: 'An insect has six legs.', chinese: '昆蟲', chineseSentence: '昆蟲有六隻腳。', sentenceAnalysis: [{ text: 'An insect', type: 'S' }, { text: 'has', type: 'V' }, { text: 'six legs', type: 'O' }] },
+                { english: 'jellyfish', partOfSpeech: 'n.', phonetics: "[ˈdʒelifɪʃ]", sentence: 'A jellyfish can be seen in the sea.', chinese: '水母', chineseSentence: '水母可以在海裡被看到。', sentenceAnalysis: [{ text: 'A jellyfish', type: 'S' }, { text: 'can be seen', type: 'V' }, { text: 'in the sea', type: 'A' }] },
+                { english: 'kangaroo', partOfSpeech: 'n.', phonetics: "[ˌkæŋɡəˈruː]", sentence: 'A kangaroo jumps very high.', chinese: '袋鼠', chineseSentence: '袋鼠跳得很高。', sentenceAnalysis: [{ text: 'A kangaroo', type: 'S' }, { text: 'jumps', type: 'V' }, { text: 'very high', type: 'A' }] },
+                { english: 'kitten', partOfSpeech: 'n.', phonetics: "[ˈkɪtn]", sentence: 'The kitten plays with a ball.', chinese: '小貓', chineseSentence: '小貓玩球。', sentenceAnalysis: [{ text: 'The kitten', type: 'S' }, { text: 'plays', type: 'V' }, { text: 'with a ball', type: 'A' }] },
+                { english: 'ladybug', partOfSpeech: 'n.', phonetics: "[ˈleɪdibʌɡ]", sentence: 'A ladybug has red wings.', chinese: '瓢蟲', chineseSentence: '瓢蟲有紅色的翅膀。', sentenceAnalysis: [{ text: 'A ladybug', type: 'S' }, { text: 'has', type: 'V' }, { text: 'red wings', type: 'O' }] },
+                { english: 'leopard', partOfSpeech: 'n.', phonetics: "[ˈlepərd]", sentence: 'A leopard is a fast animal.', chinese: '豹', chineseSentence: '豹是一種快速的動物。', sentenceAnalysis: [{ text: 'A leopard', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a fast animal', type: 'C' }] },
+                { english: 'lion', partOfSpeech: 'n.', phonetics: "[ˈlaɪən]", sentence: 'The lion roars loudly.', chinese: '獅子', chineseSentence: '獅子大聲地吼叫。', sentenceAnalysis: [{ text: 'The lion', type: 'S' }, { text: 'roars', type: 'V' }, { text: 'loudly', type: 'A' }] },
+                { english: 'monkey', partOfSpeech: 'n.', phonetics: "[ˈmʌŋki]", sentence: 'A monkey likes to eat bananas.', chinese: '猴子', chineseSentence: '猴子喜歡吃香蕉。', sentenceAnalysis: [{ text: 'A monkey', type: 'S' }, { text: 'likes', type: 'V' }, { text: 'to eat bananas', type: 'O' }] },
+                { english: 'mouse', partOfSpeech: 'n.', phonetics: "[maʊs]", sentence: 'A small mouse is running.', chinese: '老鼠', chineseSentence: '一隻小老鼠正在跑。', sentenceAnalysis: [{ text: 'A small mouse', type: 'S' }, { text: 'is running', type: 'V' }] },
+                { english: 'mosquito', partOfSpeech: 'n.', phonetics: "[məˈskiːtoʊ]", sentence: 'A mosquito bit me last night.', chinese: '蚊子', chineseSentence: '昨晚有隻蚊子咬了我。', sentenceAnalysis: [{ text: 'A mosquito', type: 'S' }, { text: 'bit', type: 'V' }, { text: 'me', type: 'O' }, { text: 'last night', type: 'A' }] },
+                { english: 'ox', partOfSpeech: 'n.', phonetics: "[ɑːks]", sentence: 'The farmer has an ox.', chinese: '公牛', chineseSentence: '農夫有一隻公牛。', sentenceAnalysis: [{ text: 'The farmer', type: 'S' }, { text: 'has', type: 'V' }, { text: 'an ox', type: 'O' }] },
+                { english: 'panda', partOfSpeech: 'n.', phonetics: "[ˈpændə]", sentence: 'The panda eats bamboo.', chinese: '熊貓', chineseSentence: '熊貓吃竹子。', sentenceAnalysis: [{ text: 'The panda', type: 'S' }, { text: 'eats', type: 'V' }, { text: 'bamboo', type: 'O' }] },
+                { english: 'parrot', partOfSpeech: 'n.', phonetics: "[ˈpærət]", sentence: 'A parrot can learn to talk.', chinese: '鸚鵡', chineseSentence: '鸚鵡可以學會說話。', sentenceAnalysis: [{ text: 'A parrot', type: 'S' }, { text: 'can learn', type: 'V' }, { text: 'to talk', type: 'O' }] },
+                { english: 'pig', partOfSpeech: 'n.', phonetics: "[pɪɡ]", sentence: 'The pig is sleeping in the mud.', chinese: '豬', chineseSentence: '那隻豬在泥巴裡睡覺。', sentenceAnalysis: [{ text: 'The pig', type: 'S' }, { text: 'is sleeping', type: 'V' }, { text: 'in the mud', type: 'A' }] },
+                { english: 'puppy', partOfSpeech: 'n.', phonetics: "[ˈpʌpi]", sentence: 'The puppy is so cute!', chinese: '小狗', chineseSentence: '這隻小狗好可愛！', sentenceAnalysis: [{ text: 'The puppy', type: 'S' }, { text: 'is', type: 'V' }, { text: 'so cute', type: 'C' }] },
+                { english: 'rabbit', partOfSpeech: 'n.', phonetics: "[ˈræbɪt]", sentence: 'A rabbit eats carrots.', chinese: '兔子', chineseSentence: '兔子吃紅蘿蔔。', sentenceAnalysis: [{ text: 'A rabbit', type: 'S' }, { text: 'eats', type: 'V' }, { text: 'carrots', type: 'O' }] },
+                { english: 'sheep', partOfSpeech: 'n.', phonetics: "[ʃiːp]", sentence: 'The sheep has white fur.', chinese: '綿羊', chineseSentence: '這隻綿羊有白色的毛。', sentenceAnalysis: [{ text: 'The sheep', type: 'S' }, { text: 'has', type: 'V' }, { text: 'white fur', type: 'O' }] },
+                { english: 'snake', partOfSpeech: 'n.', phonetics: "[sneɪk]", sentence: 'A snake can be long.', chinese: '蛇', chineseSentence: '蛇可以很長。', sentenceAnalysis: [{ text: 'A snake', type: 'S' }, { text: 'can be', type: 'V' }, { text: 'long', type: 'C' }] },
+                { english: 'spider', partOfSpeech: 'n.', phonetics: "[ˈspaɪdər]", sentence: 'A spider has eight legs.', chinese: '蜘蛛', chineseSentence: '蜘蛛有八隻腳。', sentenceAnalysis: [{ text: 'A spider', type: 'S' }, { text: 'has', type: 'V' }, { text: 'eight legs', type: 'O' }] },
+                { english: 'tiger', partOfSpeech: 'n.', phonetics: "[ˈtaɪɡər]", sentence: 'The tiger is big and strong.', chinese: '老虎', chineseSentence: '老虎又大又強壯。', sentenceAnalysis: [{ text: 'The tiger', type: 'S' }, { text: 'is', type: 'V' }, { text: 'big and strong', type: 'C' }] },
+                { english: 'turtle', partOfSpeech: 'n.', phonetics: "[ˈtɜːrtl]", sentence: 'A turtle moves very slowly.', chinese: '烏龜', chineseSentence: '烏龜移動得很慢。', sentenceAnalysis: [{ text: 'A turtle', type: 'S' }, { text: 'moves', type: 'V' }, { text: 'very slowly', type: 'A' }] },
+                { english: 'whale', partOfSpeech: 'n.', phonetics: "[weɪl]", sentence: 'A whale is a big animal.', chinese: '鯨魚', chineseSentence: '鯨魚是一種很大的動物。', sentenceAnalysis: [{ text: 'A whale', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a big animal', type: 'C' }] },
+                { english: 'wolf', partOfSpeech: 'n.', phonetics: "[wʊlf]", sentence: 'The wolf howls at the moon.', chinese: '狼', chineseSentence: '狼對著月亮嚎叫。', sentenceAnalysis: [{ text: 'The wolf', type: 'S' }, { text: 'howls', type: 'V' }, { text: 'at the moon', type: 'A' }] },
+                { english: 'zebra', partOfSpeech: 'n.', phonetics: "[ˈziːbrə]", sentence: 'A zebra has black and white stripes.', chinese: '斑馬', chineseSentence: '斑馬有黑白條紋。', sentenceAnalysis: [{ text: 'A zebra', type: 'S' }, { text: 'has', type: 'V' }, { text: 'black and white stripes', type: 'O' }] }
+            ],
+            food: [
+                { english: 'apple', partOfSpeech: 'n.', phonetics: "[ˈæpl]", sentence: 'I have one red apple.', chinese: '蘋果', chineseSentence: '我有一個紅色的蘋果。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'have', type: 'V' }, { text: 'one red apple', type: 'O' }] },
+                { english: 'banana', partOfSpeech: 'n.', phonetics: "[bəˈnænə]", sentence: 'A monkey likes to eat bananas.', chinese: '香蕉', chineseSentence: '猴子喜歡吃香蕉。', sentenceAnalysis: [{ text: 'A monkey', type: 'S' }, { text: 'likes', type: 'V' }, { text: 'to eat bananas', type: 'O' }] },
+                { english: 'beef', partOfSpeech: 'n.', phonetics: "[biːf]", sentence: 'I like to eat beef with noodles.', chinese: '牛肉', chineseSentence: '我喜歡吃牛肉麵。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat beef', type: 'O' }, { text: 'with noodles', type: 'A' }] },
+                { english: 'biscuit', partOfSpeech: 'n.', phonetics: "[ˈbɪskɪt]", sentence: 'We eat biscuits with tea.', chinese: '餅乾', chineseSentence: '我們喝茶時吃餅乾。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'biscuits', type: 'O' }, { text: 'with tea', type: 'A' }] },
+                { english: 'bread', partOfSpeech: 'n.', phonetics: "[bred]", sentence: 'I eat bread for breakfast.', chinese: '麵包', chineseSentence: '我早餐吃麵包。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'bread', type: 'O' }, { text: 'for breakfast', type: 'A' }] },
+                { english: 'butter', partOfSpeech: 'n.', phonetics: "[ˈbʌtər]", sentence: 'I put butter on my bread.', chinese: '奶油', chineseSentence: '我把奶油塗在我的麵包上。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'put', type: 'V' }, { text: 'butter', type: 'O' }, { text: 'on my bread', type: 'A' }] },
+                { english: 'cabbage', partOfSpeech: 'n.', phonetics: "[ˈkæbɪdʒ]", sentence: 'Cabbage is a green vegetable.', chinese: '高麗菜', chineseSentence: '高麗菜是一種綠色蔬菜。', sentenceAnalysis: [{ text: 'Cabbage', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a green vegetable', type: 'C' }] },
+                { english: 'cake', partOfSpeech: 'n.', phonetics: "[keɪk]", sentence: 'We eat cake on my birthday.', chinese: '蛋糕', chineseSentence: '我們在我的生日吃蛋糕。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'cake', type: 'O' }, { text: 'on my birthday', type: 'A' }] },
+                { english: 'candy', partOfSpeech: 'n.', phonetics: "[ˈkændi]", sentence: 'My brother loves to eat candy.', chinese: '糖果', chineseSentence: '我弟弟愛吃糖果。', sentenceAnalysis: [{ text: 'My brother', type: 'S' }, { text: 'loves', type: 'V' }, { text: 'to eat candy', type: 'O' }] },
+                { english: 'carrot', partOfSpeech: 'n.', phonetics: "[ˈkærət]", sentence: 'Rabbits love carrots.', chinese: '紅蘿蔔', chineseSentence: '兔子喜歡紅蘿蔔。', sentenceAnalysis: [{ text: 'Rabbits', type: 'S' }, { text: 'love', type: 'V' }, { text: 'carrots', type: 'O' }] },
+                { english: 'cheese', partOfSpeech: 'n.', phonetics: "[tʃiːz]", sentence: 'My sandwich has a slice of cheese.', chinese: '起司', chineseSentence: '我的三明治有一片起司。', sentenceAnalysis: [{ text: 'My sandwich', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a slice of cheese', type: 'O' }] },
+                { english: 'chicken', partOfSpeech: 'n.', phonetics: "[ˈtʃɪkɪn]", sentence: 'We are having chicken for dinner.', chinese: '雞肉', chineseSentence: '我們晚餐吃雞肉。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'are having', type: 'V' }, { text: 'chicken', type: 'O' }, { text: 'for dinner', type: 'A' }] },
+                { english: 'chocolate', partOfSpeech: 'n.', phonetics: "[ˈtʃɔːklət]", sentence: 'I like to eat chocolate.', chinese: '巧克力', chineseSentence: '我喜歡吃巧克力。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat chocolate', type: 'O' }] },
+                { english: 'coffee', partOfSpeech: 'n.', phonetics: "[ˈkɔːfi]", sentence: 'My dad drinks coffee every morning.', chinese: '咖啡', chineseSentence: '我爸爸每天早上喝咖啡。', sentenceAnalysis: [{ text: 'My dad', type: 'S' }, { text: 'drinks', type: 'V' }, { text: 'coffee', type: 'O' }, { text: 'every morning', type: 'A' }] },
+                { english: 'cookie', partOfSpeech: 'n.', phonetics: "[ˈkʊki]", sentence: 'A cookie is a yummy treat.', chinese: '餅乾', chineseSentence: '餅乾是一種美味的點心。', sentenceAnalysis: [{ text: 'A cookie', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a yummy treat', type: 'C' }] },
+                { english: 'corn', partOfSpeech: 'n.', phonetics: "[kɔːrn]", sentence: 'We have corn on the cob.', chinese: '玉米', chineseSentence: '我們有玉米棒。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'have', type: 'V' }, { text: 'corn on the cob', type: 'O' }] },
+                { english: 'cracker', partOfSpeech: 'n.', phonetics: "[ˈkrækər]", sentence: 'I eat crackers with soup.', chinese: '脆餅', chineseSentence: '我喝湯時吃脆餅。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'crackers', type: 'O' }, { text: 'with soup', type: 'A' }] },
+                { english: 'cucumber', partOfSpeech: 'n.', phonetics: "[ˈkjuːkʌmbər]", sentence: 'A cucumber is green.', chinese: '小黃瓜', chineseSentence: '小黃瓜是綠色的。', sentenceAnalysis: [{ text: 'A cucumber', type: 'S' }, { text: 'is', type: 'V' }, { text: 'green', type: 'C' }] },
+                { english: 'cupcake', partOfSpeech: 'n.', phonetics: "[ˈkʌpkeɪk]", sentence: 'I ate a sweet cupcake.', chinese: '杯子蛋糕', chineseSentence: '我吃了一個甜甜的杯子蛋糕。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'ate', type: 'V' }, { text: 'a sweet cupcake', type: 'O' }] },
+                { english: 'dessert', partOfSpeech: 'n.', phonetics: "[dɪˈzɜːrt]", sentence: 'We had ice cream for dessert.', chinese: '甜點', chineseSentence: '我們以冰淇淋作為甜點。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'had', type: 'V' }, { text: 'ice cream', type: 'O' }, { text: 'for dessert', type: 'A' }] },
+                { english: 'drink', partOfSpeech: 'n.', phonetics: "[drɪŋk]", sentence: 'I want a cold drink.', chinese: '飲料', chineseSentence: '我想要一杯冷飲。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'want', type: 'V' }, { text: 'a cold drink', type: 'O' }] },
+                { english: 'drumstick', partOfSpeech: 'n.', phonetics: "[ˈdrʌmstɪk]", sentence: 'I love to eat chicken drumsticks.', chinese: '雞腿', chineseSentence: '我喜歡吃雞腿。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'love', type: 'V' }, { text: 'to eat chicken drumsticks', type: 'O' }] },
+                { english: 'dumpling', partOfSpeech: 'n.', phonetics: "[ˈdʌmplɪŋ]", sentence: 'My family loves to eat dumplings.', chinese: '水餃、餃子', chineseSentence: '我家人喜歡吃水餃。', sentenceAnalysis: [{ text: 'My family', type: 'S' }, { text: 'loves', type: 'V' }, { text: 'to eat dumplings', type: 'O' }] },
+                { english: 'egg', partOfSpeech: 'n.', phonetics: "[eɡ]", sentence: 'A hen lays an egg.', chinese: '雞蛋', chineseSentence: '母雞下了一顆蛋。', sentenceAnalysis: [{ text: 'A hen', type: 'S' }, { text: 'lays', type: 'V' }, { text: 'an egg', type: 'O' }] },
+                { english: 'fish', partOfSpeech: 'n.', phonetics: "[fɪʃ]", sentence: 'My dad cooks fish for us.', chinese: '魚肉', chineseSentence: '我爸爸為我們煮魚。', sentenceAnalysis: [{ text: 'My dad', type: 'S' }, { text: 'cooks', type: 'V' }, { text: 'fish', type: 'O' }, { text: 'for us', type: 'A' }] },
+                { english: 'food', partOfSpeech: 'n.', phonetics: "[fuːd]", sentence: 'We need food to live.', chinese: '食物', chineseSentence: '我們需要食物才能生存。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'need', type: 'V' }, { text: 'food', type: 'O' }, { text: 'to live', type: 'A' }] },
+                { english: 'fruit', partOfSpeech: 'n.', phonetics: "[fruːt]", sentence: 'I like to eat fruit.', chinese: '水果', chineseSentence: '我喜歡吃水果。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat fruit', type: 'O' }] },
+                { english: 'grape', partOfSpeech: 'n.', phonetics: "[ɡreɪp]", sentence: 'I like green grapes.', chinese: '葡萄', chineseSentence: '我喜歡綠色葡萄。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'green grapes', type: 'O' }] },
+                { english: 'hamburger', partOfSpeech: 'n.', phonetics: "[ˈhæmbɜːrɡər]", sentence: 'I eat a hamburger for lunch.', chinese: '漢堡', chineseSentence: '我午餐吃一個漢堡。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'a hamburger', type: 'O' }, { text: 'for lunch', type: 'A' }] },
+                { english: 'honey', partOfSpeech: 'n.', phonetics: "[ˈhʌni]", sentence: 'Bears love to eat honey.', chinese: '蜂蜜', chineseSentence: '熊喜歡吃蜂蜜。', sentenceAnalysis: [{ text: 'Bears', type: 'S' }, { text: 'love', type: 'V' }, { text: 'to eat honey', type: 'O' }] },
+                { english: 'ice', partOfSpeech: 'n.', phonetics: "[aɪs]", sentence: 'I want some ice in my drink.', chinese: '冰', chineseSentence: '我想要我的飲料裡加點冰塊。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'want', type: 'V' }, { text: 'some ice', type: 'O' }, { text: 'in my drink', type: 'A' }] },
+                { english: 'ice cream', partOfSpeech: 'n.', phonetics: "[ˌaɪs ˈkriːm]", sentence: 'I want to eat ice cream.', chinese: '冰淇淋', chineseSentence: '我想要吃冰淇淋。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'want', type: 'V' }, { text: 'to eat ice cream', type: 'O' }] },
+                { english: 'juice', partOfSpeech: 'n.', phonetics: "[dʒuːs]", sentence: 'I drink orange juice every morning.', chinese: '果汁', chineseSentence: '我每天早上喝柳橙汁。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'drink', type: 'V' }, { text: 'orange juice', type: 'O' }, { text: 'every morning', type: 'A' }] },
+                { english: 'ketchup', partOfSpeech: 'n.', phonetics: "[ˈketʃəp]", sentence: 'Do you want ketchup with your fries?', chinese: '番茄醬', chineseSentence: '你的薯條要加番茄醬嗎？', sentenceAnalysis: [{ text: 'Do you want', type: 'V+S' }, { text: 'ketchup', type: 'O' }, { text: 'with your fries', type: 'A' }] },
+                { english: 'kiwi', partOfSpeech: 'n.', phonetics: "[ˈkiːwi]", sentence: 'A kiwi is a small brown fruit.', chinese: '奇異果', chineseSentence: '奇異果是一種小小的棕色水果。', sentenceAnalysis: [{ text: 'A kiwi', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a small brown fruit', type: 'C' }] },
+                { english: 'lemon', partOfSpeech: 'n.', phonetics: "[ˈlemən]", sentence: 'A lemon is a sour fruit.', chinese: '檸檬', chineseSentence: '檸檬是一種酸的水果。', sentenceAnalysis: [{ text: 'A lemon', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a sour fruit', type: 'C' }] },
+                { english: 'meat', partOfSpeech: 'n.', phonetics: "[miːt]", sentence: 'We eat meat and vegetables.', chinese: '肉', chineseSentence: '我們吃肉和蔬菜。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'meat and vegetables', type: 'O' }] },
+                { english: 'milk', partOfSpeech: 'n.', phonetics: "[mɪlk]", sentence: 'Milk is good for you.', chinese: '牛奶', chineseSentence: '牛奶對你有好處。', sentenceAnalysis: [{ text: 'Milk', type: 'S' }, { text: 'is', type: 'V' }, { text: 'good for you', type: 'C' }] },
+                { english: 'noodle', partOfSpeech: 'n.', phonetics: "[ˈnuːdl]", sentence: 'I like to eat noodles for lunch.', chinese: '麵', chineseSentence: '我午餐喜歡吃麵。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat noodles', type: 'O' }, { text: 'for lunch', type: 'A' }] },
+                { english: 'nut', partOfSpeech: 'n.', phonetics: "[nʌt]", sentence: 'A squirrel likes to eat nuts.', chinese: '堅果', chineseSentence: '松鼠喜歡吃堅果。', sentenceAnalysis: [{ text: 'A squirrel', type: 'S' }, { text: 'likes', type: 'V' }, { text: 'to eat nuts', type: 'O' }] },
+                { english: 'onion', partOfSpeech: 'n.', phonetics: "[ˈʌnjən]", sentence: 'I cried when I cut the onion.', chinese: '洋蔥', chineseSentence: '我切洋蔥時哭了。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'cried', type: 'V' }, { text: 'when I cut the onion', type: 'A' }] },
+                { english: 'orange', partOfSpeech: 'n.', phonetics: "[ˈɔːrɪndʒ]", sentence: 'An orange is a fruit.', chinese: '柳橙', chineseSentence: '柳橙是一種水果。', sentenceAnalysis: [{ text: 'An orange', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a fruit', type: 'C' }] },
+                { english: 'peach', partOfSpeech: 'n.', phonetics: "[piːtʃ]", sentence: 'A peach is a sweet fruit.', chinese: '桃子', chineseSentence: '桃子是一種甜的水果。', sentenceAnalysis: [{ text: 'A peach', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a sweet fruit', type: 'C' }] },
+                { english: 'pear', partOfSpeech: 'n.', phonetics: "[peər]", sentence: 'I like to eat pears.', chinese: '梨子', chineseSentence: '我喜歡吃梨子。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat pears', type: 'O' }] },
+                { english: 'pizza', partOfSpeech: 'n.', phonetics: "[ˈpiːtsə]", sentence: 'We ordered a large pizza for dinner.', chinese: '披薩', chineseSentence: '我們晚餐點了一個大披薩。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'ordered', type: 'V' }, { text: 'a large pizza', type: 'O' }, { text: 'for dinner', type: 'A' }] },
+                { english: 'potato', partOfSpeech: 'n.', phonetics: "[pəˈteɪtoʊ]", sentence: 'I like to eat mashed potato.', chinese: '馬鈴薯', chineseSentence: '我喜歡吃馬鈴薯泥。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat mashed potato', type: 'O' }] },
+                { english: 'pork', partOfSpeech: 'n.', phonetics: "[pɔːrk]", sentence: 'Pork is a popular meat.', chinese: '豬肉', chineseSentence: '豬肉是一種很受歡迎的肉類。', sentenceAnalysis: [{ text: 'Pork', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a popular meat', type: 'C' }] },
+                { english: 'rice', partOfSpeech: 'n.', phonetics: "[raɪs]", sentence: 'We eat rice every day.', chinese: '米飯', chineseSentence: '我們每天吃飯。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'rice', type: 'O' }, { text: 'every day', type: 'A' }] },
+                { english: 'salad', partOfSpeech: 'n.', phonetics: "[ˈsæləd]", sentence: 'I like to eat a green salad.', chinese: '沙拉', chineseSentence: '我喜歡吃綠色沙拉。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat a green salad', type: 'O' }] },
+                { english: 'sandwich', partOfSpeech: 'n.', phonetics: "[ˈsænwɪtʃ]", sentence: 'My sandwich is with cheese and ham.', chinese: '三明治', chineseSentence: '我的三明治有起司和火腿。', sentenceAnalysis: [{ text: 'My sandwich', type: 'S' }, { text: 'is', type: 'V' }, { text: 'with cheese and ham', type: 'A' }] },
+                { english: 'shrimp', partOfSpeech: 'n.', phonetics: "[ʃrɪmp]", sentence: 'I like to eat grilled shrimp.', chinese: '蝦', chineseSentence: '我喜歡吃烤蝦。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat grilled shrimp', type: 'O' }] },
+                { english: 'soup', partOfSpeech: 'n.', phonetics: "[suːp]", sentence: 'I eat chicken soup when I am sick.', chinese: '湯', chineseSentence: '我生病時喝雞湯。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'eat', type: 'V' }, { text: 'chicken soup', type: 'O' }, { text: 'when I am sick', type: 'A' }] },
+                { english: 'steak', partOfSpeech: 'n.', phonetics: "[steɪk]", sentence: 'My dad is cooking a steak.', chinese: '牛排', chineseSentence: '我爸爸正在煮牛排。', sentenceAnalysis: [{ text: 'My dad', type: 'S' }, { text: 'is cooking', type: 'V' }, { text: 'a steak', type: 'O' }] },
+                { english: 'strawberry', partOfSpeech: 'n.', phonetics: "[ˈstrɔːberi]", sentence: 'A strawberry is a red fruit.', chinese: '草莓', chineseSentence: '草莓是一種紅色的水果。', sentenceAnalysis: [{ text: 'A strawberry', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a red fruit', type: 'C' }] },
+                { english: 'sugar', partOfSpeech: 'n.', phonetics: "[ˈʃʊɡər]", sentence: 'This candy is too sweet, it has too much sugar.', chinese: '糖', chineseSentence: '這個糖果太甜了，糖太多了。', sentenceAnalysis: [{ text: 'This candy', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too sweet', type: 'C' }, { text: 'it has too much sugar', type: 'A' }] },
+                { english: 'tea', partOfSpeech: 'n.', phonetics: "[tiː]", sentence: 'My grandma likes to drink hot tea.', chinese: '茶', chineseSentence: '我奶奶喜歡喝熱茶。', sentenceAnalysis: [{ text: 'My grandma', type: 'S' }, { text: 'likes', type: 'V' }, { text: 'to drink hot tea', type: 'O' }] },
+                { english: 'tofu', partOfSpeech: 'n.', phonetics: "[ˈtoʊfu]", sentence: 'I like to eat fried tofu.', chinese: '豆腐', chineseSentence: '我喜歡吃炸豆腐。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'like', type: 'V' }, { text: 'to eat fried tofu', type: 'O' }] },
+                { english: 'tomato', partOfSpeech: 'n.', phonetics: "[təˈmeɪtoʊ]", sentence: 'A tomato is a red vegetable.', chinese: '番茄', chineseSentence: '番茄是一種紅色的蔬菜。', sentenceAnalysis: [{ text: 'A tomato', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a red vegetable', type: 'C' }] },
+                { english: 'vegetable', partOfSpeech: 'n.', phonetics: "[ˈvedʒtəbl]", sentence: 'Eating vegetables is good for you.', chinese: '蔬菜', chineseSentence: '吃蔬菜對你有好處。', sentenceAnalysis: [{ text: 'Eating vegetables', type: 'S' }, { text: 'is', type: 'V' }, { text: 'good for you', type: 'C' }] },
+                { english: 'water', partOfSpeech: 'n.', phonetics: "[ˈwɔːtər]", sentence: 'Please give me a cup of water.', chinese: '水', chineseSentence: '請給我一杯水。', sentenceAnalysis: [{ text: 'You (implied)', type: 'S' }, { text: 'Please give', type: 'V' }, { text: 'me', type: 'O' }, { text: 'a cup of water', type: 'O' }] }
+            ]
+        };
+        
+        let currentWords = allWords.numbers;
+        let currentIndex = 0;
+        let currentDictationWordIndex;
+        let isReadingContinuously = false;
+        let currentTheme = 'numbers';
+
+        // Flashcard elements
+        const flashcardTab = document.getElementById('flashcardTab');
+        const flashcardPage = document.getElementById('flashcardPage');
+        const flashcard = document.getElementById('flashcard');
+        const wordEl = document.getElementById('word');
+        const partOfSpeechEl = document.getElementById('partOfSpeech');
+        const phoneticsEl = document.getElementById('phonetics');
+        const sentenceAnalysisEl = document.getElementById('sentenceAnalysis');
+        const definitionEl = document.getElementById('definition');
+        const sentenceTranslationEl = document.getElementById('sentence-translation');
+        const progressEl = document.getElementById('progress');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const continuousBtn = document.getElementById('continuousBtn');
+        const speakBtn = document.getElementById('speakBtn');
+        const speakSentenceBtn = document.getElementById('speakSentenceBtn');
+        const flashcardSpeechRateSelect = document.getElementById('flashcardSpeechRateSelect');
+        const flashcardThemeButtons = document.querySelectorAll('#flashcardThemes .theme-button');
+
+        // Dictation elements
+        const dictationTab = document.getElementById('dictationTab');
+        const dictationPage = document.getElementById('dictationPage');
+        const dictationProgress = document.getElementById('dictationProgress');
+        const dictationSpeakBtn = document.getElementById('dictationSpeakBtn');
+        const answerInput = document.getElementById('answerInput');
+        const resultMessage = document.getElementById('resultMessage');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextDictationBtn = document.getElementById('nextDictationBtn');
+        const dictationSpeechRateSelect = document.getElementById('dictationSpeechRateSelect');
+        const dictationThemeButtons = document.querySelectorAll('#dictationThemes .theme-button');
+
+        // Function to speak the word or sentence
+        function speak(text, rate = 1.0) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any ongoing speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = rate;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log('Sorry, your browser does not support text-to-speech.');
+            }
+        }
+
+        // --- Flashcard page logic ---
+        function updateCard(index) {
+            currentIndex = index;
+            const currentWord = currentWords[currentIndex];
+            wordEl.textContent = currentWord.english;
+            partOfSpeechEl.textContent = currentWord.partOfSpeech;
+            phoneticsEl.textContent = currentWord.phonetics;
+            definitionEl.textContent = currentWord.chinese;
+            sentenceTranslationEl.textContent = currentWord.chineseSentence;
+            progressEl.textContent = `${currentIndex + 1} / ${currentWords.length}`;
+            flashcard.classList.remove('flipped');
+            
+            // Update sentence analysis
+            updateSentenceAnalysis(currentWord.sentenceAnalysis);
+        }
+
+        function updateSentenceAnalysis(analysisData) {
+            sentenceAnalysisEl.innerHTML = ''; // Clear old analysis
+            analysisData.forEach(item => {
+                const wordContainer = document.createElement('div');
+                wordContainer.className = 'flex flex-col items-center';
+                
+                const wordSpan = document.createElement('span');
+                wordSpan.textContent = item.text;
+                if (item.type === 'V') {
+                    wordSpan.classList.add('text-red-500', 'font-bold');
+                }
+                
+                const typeSpan = document.createElement('span');
+                typeSpan.textContent = `(${item.type})`;
+                typeSpan.classList.add('text-xs', 'text-gray-500');
+
+                wordContainer.appendChild(wordSpan);
+                wordContainer.appendChild(typeSpan);
+                sentenceAnalysisEl.appendChild(wordContainer);
+            });
+        }
+
+        function changeTheme(theme) {
+            currentTheme = theme;
+            currentWords = allWords[theme];
+            currentIndex = 0;
+            updateCard(currentIndex);
+            
+            // Update button active state for flashcard page
+            flashcardThemeButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`#flashcardThemes button[data-theme="${theme}"]`).classList.add('active');
+            
+            // Update button active state for dictation page
+            dictationThemeButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`#dictationThemes button[data-theme="${theme}"]`).classList.add('active');
+        }
+
+        flashcard.addEventListener('click', () => {
+            if (!isReadingContinuously) {
+                flashcard.classList.toggle('flipped');
+            }
+        });
+
+        speakBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rate = parseFloat(flashcardSpeechRateSelect.value);
+            speak(currentWords[currentIndex].english, rate);
+        });
+
+        speakSentenceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rate = parseFloat(flashcardSpeechRateSelect.value);
+            speak(currentWords[currentIndex].sentence, rate);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+            }
+            currentIndex = (currentIndex + 1) % currentWords.length;
+            updateCard(currentIndex);
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+            }
+            currentIndex = (currentIndex - 1 + currentWords.length) % currentWords.length;
+            updateCard(currentIndex);
+        });
+
+        continuousBtn.addEventListener('click', () => {
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+                continuousBtn.textContent = '連續';
+                return;
+            }
+            
+            isReadingContinuously = true;
+            continuousBtn.textContent = '停止';
+            let currentContinuousIndex = currentIndex;
+            
+            function readWordWithRepetitions(wordIndex, repetition = 0) {
+                if (!isReadingContinuously || wordIndex >= currentWords.length) {
+                    isReadingContinuously = false;
+                    continuousBtn.textContent = '連續';
+                    return;
+                }
+                
+                updateCard(wordIndex);
+
+                if (repetition < 3) {
+                    const rate = parseFloat(flashcardSpeechRateSelect.value);
+                    speak(currentWords[wordIndex].english, rate);
+                    setTimeout(() => {
+                        readWordWithRepetitions(wordIndex, repetition + 1);
+                    }, 1000);
+                } else {
+                    currentContinuousIndex++;
+                    if (currentContinuousIndex < currentWords.length) {
+                        setTimeout(() => {
+                            readWordWithRepetitions(currentContinuousIndex, 0);
+                        }, 1000); // Wait 1 second before next word
+                    } else {
+                        isReadingContinuously = false;
+                        continuousBtn.textContent = '連續';
+                    }
+                }
+            }
+            readWordWithRepetitions(currentContinuousIndex, 0);
+        });
+
+        flashcardThemeButtons.forEach(button => {
+            button.addEventListener('click', () => changeTheme(button.dataset.theme));
+        });
+
+        // --- Dictation page logic ---
+        function startDictation() {
+            currentDictationWordIndex = Math.floor(Math.random() * currentWords.length);
+            answerInput.value = '';
+            resultMessage.textContent = '';
+            dictationProgress.textContent = `${currentWords.length} / ${currentWords.length}`;
+            checkBtn.classList.remove('hidden');
+        }
+
+        dictationSpeakBtn.addEventListener('click', () => {
+            const rate = parseFloat(dictationSpeechRateSelect.value);
+            speak(currentWords[currentDictationWordIndex].english, rate);
+        });
+
+        checkBtn.addEventListener('click', () => {
+            const userAnswer = answerInput.value.trim().toLowerCase();
+            const correctAnswer = currentWords[currentDictationWordIndex].english.toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                resultMessage.textContent = '答對了！';
+                resultMessage.className = 'mt-4 text-2xl font-bold correct';
+            } else {
+                resultMessage.textContent = `答錯了，正確答案是：${currentWords[currentDictationWordIndex].english}`;
+                resultMessage.className = 'mt-4 text-2xl font-bold incorrect';
+            }
+        });
+
+        nextDictationBtn.addEventListener('click', () => {
+            startDictation();
+        });
+        
+        answerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkBtn.click();
+            }
+        });
+
+        dictationThemeButtons.forEach(button => {
+            button.addEventListener('click', () => changeTheme(button.dataset.theme));
+        });
+
+        // --- Page switching logic ---
+        function showPage(pageId) {
+            flashcardPage.classList.add('hidden');
+            dictationPage.classList.add('hidden');
+            flashcardTab.classList.remove('active');
+            dictationTab.classList.remove('active');
+            
+            // Stop continuous reading when changing pages
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+                continuousBtn.textContent = '連續';
+            }
+
+            if (pageId === 'flashcard') {
+                flashcardPage.classList.remove('hidden');
+                flashcardTab.classList.add('active');
+                updateCard(currentIndex);
+            } else if (pageId === 'dictation') {
+                dictationPage.classList.remove('hidden');
+                dictationTab.classList.add('active');
+                startDictation();
+            }
+        }
+
+        flashcardTab.addEventListener('click', () => showPage('flashcard'));
+        dictationTab.addEventListener('click', () => showPage('dictation'));
+
+        window.onload = () => {
+            showPage('flashcard');
+            changeTheme('numbers'); // Set default theme
+        };
+    </script>
+</body>
+</html>
