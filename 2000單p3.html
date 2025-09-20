@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單字卡</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .flip-card {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 1.5rem;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-2xl mx-auto p-4 md:p-8">
+        <!-- 導覽標籤 -->
+        <div class="flex border-b mb-6">
+            <button id="flashcardTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">單字卡</button>
+            <button id="dictationTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">聽寫</button>
+            <button class="text-gray-500 py-2 px-4 text-lg font-semibold transition-colors duration-200">文章聽寫</button>
+        </div>
+
+        <!-- 單字卡頁面 -->
+        <div id="flashcardPage" class="space-y-6">
+            <!-- 進度顯示 -->
+            <div id="progress" class="text-center text-gray-500 text-lg">1 / 3</div>
+
+            <!-- 發音速度選擇 -->
+            <div class="flex justify-center items-center mb-4">
+                <label for="flashcardSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
+                <select id="flashcardSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="1.0">正常速度</option>
+                    <option value="0.7">0.7 倍</option>
+                    <option value="0.5">0.5 倍</option>
+                </select>
+            </div>
+            
+            <!-- 卡片容器 -->
+            <div id="flashcard" class="flip-card w-full h-80 md:h-96 rounded-3xl cursor-pointer noselect">
+                <div id="flashcard-inner" class="flip-card-inner shadow-lg rounded-3xl">
+                    <!-- 卡片正面 (英文) -->
+                    <div class="flip-card-front bg-gradient-to-br from-blue-100 via-purple-100 to-blue-200">
+                        <h2 id="word" class="text-4xl md:text-6xl font-bold text-gray-800 text-center"></h2>
+                        <div class="flex flex-col items-center justify-center mb-2">
+                            <p id="partOfSpeech" class="text-xl text-gray-700"></p>
+                            <p id="phonetics" class="text-2xl text-gray-600 font-mono mt-1"></p>
+                        </div>
+                        <!-- 句子結構標示 -->
+                        <div id="sentenceAnalysis" class="flex flex-wrap justify-center items-center gap-2 mt-2 text-lg md:text-xl"></div>
+                        
+                        <!-- 單字發音按鈕 -->
+                        <button id="speakBtn" class="absolute bottom-6 right-6 p-3 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                        </button>
+                        <!-- 句子發音按鈕 -->
+                        <button id="speakSentenceBtn" class="absolute bottom-6 left-6 p-3 font-semibold text-lg text-blue-600 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
+                            sentence
+                        </button>
+                    </div>
+                    <!-- 卡片反面 (中文) -->
+                    <div class="flip-card-back">
+                        <h2 id="definition" class="text-3xl md:text-5xl font-bold text-white text-center"></h2>
+                        <p id="sentence-translation" class="mt-4 text-xl md:text-2xl text-white text-center px-4"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 控制按鈕 -->
+            <div class="flex justify-center items-center gap-4">
+                <button id="prevBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">上一個</button>
+                <button id="nextBtn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-600 transition-colors">下一個</button>
+                <button id="continuousBtn" class="bg-purple-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-purple-600 transition-colors">連續</button>
+            </div>
+        </div>
+
+        <!-- 聽寫頁面 -->
+        <div id="dictationPage" class="space-y-6 hidden text-center">
+            <div id="dictationProgress" class="text-center text-gray-500 text-lg"></div>
+            <p class="text-2xl font-bold text-gray-700 mt-8">請聽發音並拼出單字：</p>
+            
+            <div class="flex flex-col items-center justify-center h-48">
+                <!-- 發音速度選擇 -->
+                <div class="mb-4">
+                    <label for="dictationSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
+                    <select id="dictationSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="1.0">正常速度</option>
+                        <option value="0.7">0.7 倍</option>
+                        <option value="0.5">0.5 倍</option>
+                    </select>
+                </div>
+                <!-- 發音按鈕 -->
+                <button id="dictationSpeakBtn" class="p-8 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mt-8 px-4">
+                <input id="answerInput" type="text" placeholder="在此輸入答案" class="w-full max-w-lg p-4 text-center text-xl rounded-xl border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            </div>
+
+            <div id="resultMessage" class="mt-4 text-2xl font-bold"></div>
+
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <button id="checkBtn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-600 transition-colors">檢查</button>
+                <button id="nextDictationBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">下一題</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            { english: 'beautiful', partOfSpeech: 'adj.', phonetics: "[ˈbjuːtəfl]", sentence: 'I need a beautiful dress for the party.', chinese: '美觀的, 漂亮的', chineseSentence: '為了這場派對，我需要一件美麗的洋裝。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'a beautiful dress', type: 'O' }, { text: 'for the party', type: 'A' }] },
+            { english: 'cute', partOfSpeech: 'adj.', phonetics: "[kjuːt]", sentence: 'He bought a cute sweater for Daisy.', chinese: '可愛的', chineseSentence: '他買了一件可愛的毛衣給黛西。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'bought', type: 'V' }, { text: 'a cute sweater', type: 'O' }, { text: 'for Daisy', type: 'A' }] },
+            { english: 'handsome', partOfSpeech: 'adj.', phonetics: "[ˈhænsəm]", sentence: 'Handsome is as handsome does.', chinese: '英俊的, 好看的', chineseSentence: '慷慨仁慈始為美。', sentenceAnalysis: [{ text: 'Handsome', type: 'S' }, { text: 'is', type: 'V' }, { text: 'as handsome does', type: 'A' }] },
+            { english: 'pretty', partOfSpeech: 'adj.', phonetics: "[ˈprɪti]", sentence: 'Mr. Wang has a pretty daughter.', chinese: '漂亮的, 可愛的', chineseSentence: '王先生有個漂亮的女兒。', sentenceAnalysis: [{ text: 'Mr. Wang', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a pretty daughter', type: 'O' }] },
+            { english: 'ugly', partOfSpeech: 'adj.', phonetics: "[ˈʌɡli]", sentence: 'What an ugly picture!', chinese: '醜陋的, 難看的', chineseSentence: '這張圖畫實在有夠醜。', sentenceAnalysis: [{ text: 'What an ugly picture', type: 'C' }] },
+            { english: 'blind', partOfSpeech: 'adj.', phonetics: "[blaɪnd]", sentence: 'We should help blind people.', chinese: '瞎的', chineseSentence: '我們應該幫助盲人。', sentenceAnalysis: [{ text: 'We', type: 'S' }, { text: 'should help', type: 'V' }, { text: 'blind people', type: 'O' }] },
+            { english: 'chubby', partOfSpeech: 'adj.', phonetics: "[ˈtʃʌbi]", sentence: 'The boy has a chubby face.', chinese: '圓胖的, 豐滿的', chineseSentence: '這個男孩有張胖嘟嘟的臉。', sentenceAnalysis: [{ text: 'The boy', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a chubby face', type: 'O' }] },
+            { english: 'deaf', partOfSpeech: 'adj.', phonetics: "[def]", sentence: 'Helen Keller was blind, deaf and dumb.', chinese: '聾的', chineseSentence: '海倫凱勒又瞎又聾又啞。', sentenceAnalysis: [{ text: 'Helen Keller', type: 'S' }, { text: 'was', type: 'V' }, { text: 'blind, deaf and dumb', type: 'C' }] },
+            { english: 'dumb', partOfSpeech: 'adj.', phonetics: "[dʌm]", sentence: 'Dumb dogs are dangerous.', chinese: '啞的', chineseSentence: '無聲狗，咬死人。', sentenceAnalysis: [{ text: 'Dumb dogs', type: 'S' }, { text: 'are', type: 'V' }, { text: 'dangerous', type: 'C' }] },
+            { english: 'fat', partOfSpeech: 'adj.', phonetics: "[fæt]", sentence: 'Don\'t eat too much fat.', chinese: '肥胖的', chineseSentence: '不要攝取太多脂肪。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: 'don\'t eat', type: 'V' }, { text: 'too much fat', type: 'O' }] },
+            { english: 'heavy', partOfSpeech: 'adj.', phonetics: "[ˈhevi]", sentence: 'The box is too heavy to carry.', chinese: '重的', chineseSentence: '這個箱子太重了提不動。', sentenceAnalysis: [{ text: 'The box', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too heavy to carry', type: 'C' }] },
+            { english: 'over-weight', partOfSpeech: 'adj.', phonetics: "[ˌoʊvərˈweɪt]", sentence: 'Over-weight is bad for health.', chinese: '過重的', chineseSentence: '過重有損健康。', sentenceAnalysis: [{ text: 'Over-weight', type: 'S' }, { text: 'is', type: 'V' }, { text: 'bad for health', type: 'C' }] },
+            { english: 'under-weight', partOfSpeech: 'adj.', phonetics: "[ˌʌndərˈweɪt]", sentence: 'Dad is under-weight because he eats too little.', chinese: '過輕的', chineseSentence: '爸爸體重過輕是因為他吃的太少。', sentenceAnalysis: [{ text: 'Dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'under-weight', type: 'C' }, { text: 'because he eats too little', type: 'A' }] },
+            { english: 'nice-looking', partOfSpeech: 'adj.', phonetics: "[ˌnaɪsˈlʊkɪŋ]", sentence: 'She is a nice-looking girl.', chinese: '好看的', chineseSentence: '她是個好看的女孩。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice-looking girl', type: 'C' }] }
+        ];
+
+        let currentIndex = 0;
+        let currentDictationWordIndex;
+        let isReadingContinuously = false;
+
+        // Flashcard elements
+        const flashcardTab = document.getElementById('flashcardTab');
+        const flashcardPage = document.getElementById('flashcardPage');
+        const flashcard = document.getElementById('flashcard');
+        const wordEl = document.getElementById('word');
+        const partOfSpeechEl = document.getElementById('partOfSpeech');
+        const phoneticsEl = document.getElementById('phonetics');
+        const sentenceAnalysisEl = document.getElementById('sentenceAnalysis');
+        const definitionEl = document.getElementById('definition');
+        const sentenceTranslationEl = document.getElementById('sentence-translation');
+        const progressEl = document.getElementById('progress');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const continuousBtn = document.getElementById('continuousBtn');
+        const speakBtn = document.getElementById('speakBtn');
+        const speakSentenceBtn = document.getElementById('speakSentenceBtn');
+        const flashcardSpeechRateSelect = document.getElementById('flashcardSpeechRateSelect');
+
+        // Dictation elements
+        const dictationTab = document.getElementById('dictationTab');
+        const dictationPage = document.getElementById('dictationPage');
+        const dictationProgress = document.getElementById('dictationProgress');
+        const dictationSpeakBtn = document.getElementById('dictationSpeakBtn');
+        const answerInput = document.getElementById('answerInput');
+        const resultMessage = document.getElementById('resultMessage');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextDictationBtn = document.getElementById('nextDictationBtn');
+        const dictationSpeechRateSelect = document.getElementById('dictationSpeechRateSelect');
+
+        // Function to speak the word or sentence
+        function speak(text, rate = 1.0) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = rate;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log('Sorry, your browser does not support text-to-speech.');
+            }
+        }
+
+        // --- 單字卡頁面邏輯 ---
+        function updateCard(index) {
+            currentIndex = index;
+            const currentWord = words[currentIndex];
+            wordEl.textContent = currentWord.english;
+            partOfSpeechEl.textContent = currentWord.partOfSpeech;
+            phoneticsEl.textContent = currentWord.phonetics;
+            definitionEl.textContent = currentWord.chinese;
+            sentenceTranslationEl.textContent = currentWord.chineseSentence;
+            progressEl.textContent = `${currentIndex + 1} / ${words.length}`;
+            flashcard.classList.remove('flipped');
+            
+            // 更新句子結構標示
+            updateSentenceAnalysis(currentWord.sentenceAnalysis);
+        }
+
+        function updateSentenceAnalysis(analysisData) {
+            sentenceAnalysisEl.innerHTML = ''; // 清空舊的標示
+            analysisData.forEach(item => {
+                const wordContainer = document.createElement('div');
+                wordContainer.className = 'flex flex-col items-center';
+                
+                const wordSpan = document.createElement('span');
+                wordSpan.textContent = item.text;
+                if (item.type === 'V') {
+                    wordSpan.classList.add('text-red-500', 'font-bold');
+                }
+                
+                const typeSpan = document.createElement('span');
+                typeSpan.textContent = `(${item.type})`;
+                typeSpan.classList.add('text-xs', 'text-gray-500');
+
+                wordContainer.appendChild(wordSpan);
+                wordContainer.appendChild(typeSpan);
+                sentenceAnalysisEl.appendChild(wordContainer);
+            });
+        }
+
+        flashcard.addEventListener('click', () => {
+            if (!isReadingContinuously) {
+                flashcard.classList.toggle('flipped');
+            }
+        });
+
+        speakBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rate = parseFloat(flashcardSpeechRateSelect.value);
+            speak(words[currentIndex].english, rate);
+        });
+
+        speakSentenceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rate = parseFloat(flashcardSpeechRateSelect.value);
+            speak(words[currentIndex].sentence, rate);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+            }
+            currentIndex = (currentIndex + 1) % words.length;
+            updateCard(currentIndex);
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+            }
+            currentIndex = (currentIndex - 1 + words.length) % words.length;
+            updateCard(currentIndex);
+        });
+
+        continuousBtn.addEventListener('click', () => {
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+                return;
+            }
+            
+            isReadingContinuously = true;
+            let currentContinuousIndex = currentIndex;
+            
+            function readWordWithRepetitions(wordIndex, repetition = 0) {
+                if (!isReadingContinuously || wordIndex >= words.length) {
+                    isReadingContinuously = false;
+                    return;
+                }
+                
+                if (repetition < 3) {
+                    updateCard(wordIndex);
+                    const rate = parseFloat(flashcardSpeechRateSelect.value);
+                    speak(words[wordIndex].english, rate);
+                    setTimeout(() => {
+                        readWordWithRepetitions(wordIndex, repetition + 1);
+                    }, 700);
+                } else {
+                    currentContinuousIndex++;
+                    if (currentContinuousIndex < words.length) {
+                        setTimeout(() => {
+                            readWordWithRepetitions(currentContinuousIndex, 0);
+                        }, 1000); // Wait 1 second before next word
+                    } else {
+                        isReadingContinuously = false;
+                    }
+                }
+            }
+            readWordWithRepetitions(currentContinuousIndex, 0);
+        });
+
+        // --- 聽寫頁面邏輯 ---
+        function startDictation() {
+            currentDictationWordIndex = Math.floor(Math.random() * words.length);
+            answerInput.value = '';
+            resultMessage.textContent = '';
+            checkBtn.classList.remove('hidden');
+        }
+
+        dictationSpeakBtn.addEventListener('click', () => {
+            const rate = parseFloat(dictationSpeechRateSelect.value);
+            speak(words[currentDictationWordIndex].english, rate);
+        });
+
+        checkBtn.addEventListener('click', () => {
+            const userAnswer = answerInput.value.trim().toLowerCase();
+            const correctAnswer = words[currentDictationWordIndex].english.toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                resultMessage.textContent = '答對了！';
+                resultMessage.className = 'mt-4 text-2xl font-bold correct';
+            } else {
+                resultMessage.textContent = '答錯了，請再試一次。';
+                resultMessage.className = 'mt-4 text-2xl font-bold incorrect';
+            }
+        });
+
+        nextDictationBtn.addEventListener('click', () => {
+            startDictation();
+        });
+        
+        answerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkBtn.click();
+            }
+        });
+
+        // --- 頁面切換邏輯 ---
+        function showPage(pageId) {
+            flashcardPage.classList.add('hidden');
+            dictationPage.classList.add('hidden');
+            flashcardTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            dictationTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            flashcardTab.classList.add('text-gray-500');
+            dictationTab.classList.add('text-gray-500');
+            
+            // Stop continuous reading when changing pages
+            if (isReadingContinuously) {
+                window.speechSynthesis.cancel();
+                isReadingContinuously = false;
+            }
+
+            if (pageId === 'flashcard') {
+                flashcardPage.classList.remove('hidden');
+                flashcardTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                flashcardTab.classList.remove('text-gray-500');
+                updateCard(currentIndex);
+            } else if (pageId === 'dictation') {
+                dictationPage.classList.remove('hidden');
+                dictationTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                dictationTab.classList.remove('text-gray-500');
+                startDictation();
+            }
+        }
+
+        flashcardTab.addEventListener('click', () => showPage('flashcard'));
+        dictationTab.addEventListener('click', () => showPage('dictation'));
+
+        window.onload = () => {
+            showPage('flashcard');
+        };
+
+    </script>
+</body>
+</html>
