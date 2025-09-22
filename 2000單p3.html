@@ -66,6 +66,57 @@
             transform: scale(0.95);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) inset;
         }
+
+        /* --- 配對遊戲樣式 (修改後) --- */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 0.5rem;
+        }
+        .game-card {
+            border-radius: 0.75rem;
+            cursor: pointer;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(0.8rem, 3vw, 1.1rem);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            padding: 0.25rem;
+            text-align: center;
+            border-width: 2px;
+            word-break: break-word;
+        }
+        .game-card-en {
+            background-color: #e0f2fe; /* bg-sky-100 */
+            border-color: #7dd3fc; /* border-sky-300 */
+            color: #0c4a6e; /* text-sky-800 */
+        }
+        .game-card-zh {
+            background-color: #fef3c7; /* bg-amber-100 */
+            border-color: #fcd34d; /* border-amber-300 */
+            color: #92400e; /* text-amber-800 */
+        }
+        .game-card.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.5); /* Ring effect */
+        }
+        .game-card-en.selected {
+            background-color: #bae6fd; /* bg-sky-200 */
+            border-color: #38bdf8; /* border-sky-400 */
+        }
+        .game-card-zh.selected {
+            background-color: #fde68a; /* bg-amber-200 */
+            border-color: #f59e0b; /* border-amber-500 */
+        }
+        .game-card.matched {
+            transform: scale(0.9);
+            opacity: 0;
+            cursor: default;
+            transition: all 0.3s ease-out;
+        }
+
     </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
@@ -75,23 +126,19 @@
         <div class="flex border-b mb-6">
             <button id="flashcardTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">單字卡</button>
             <button id="dictationTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">聽寫</button>
-            <button class="text-gray-500 py-2 px-4 text-lg font-semibold transition-colors duration-200">文章聽寫</button>
+            <button id="matchingGameTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">配對遊戲</button>
         </div>
 
         <!-- 單字卡頁面 -->
         <div id="flashcardPage" class="space-y-6">
             <!-- 進度顯示 -->
             <div id="progress" class="text-center text-gray-500 text-lg">1 / 3</div>
-
-            <!-- ===== 修改: 類別選擇 ===== -->
             <div class="flex justify-center items-center mb-4 space-x-2">
                 <label class="text-gray-700 font-semibold mr-2">類別:</label>
                 <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
                 <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
                 <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
             </div>
-
-            <!-- 發音速度選擇 -->
             <div class="flex justify-center items-center mb-4">
                 <label for="flashcardSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
                 <select id="flashcardSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -100,45 +147,39 @@
                     <option value="0.5">0.5 倍</option>
                 </select>
             </div>
-            
-            <!-- 卡片容器 -->
+            <!-- 搜尋欄位 -->
+            <div class="flex justify-center items-center mb-2 gap-2 px-4">
+                <input id="searchInput" type="text" placeholder="輸入單字進行搜尋..." class="w-full max-w-xs p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="searchBtn" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg shadow hover:bg-indigo-600 transition-colors">搜尋</button>
+            </div>
+            <p id="searchResult" class="text-center text-red-500 h-6 mb-2"></p>
+
             <div id="flashcard" class="flip-card w-full h-80 md:h-96 rounded-3xl cursor-pointer noselect">
                 <div id="flashcard-inner" class="flip-card-inner shadow-lg rounded-3xl">
-                    <!-- 卡片正面 (英文) -->
                     <div class="flip-card-front bg-gradient-to-br from-blue-100 via-purple-100 to-blue-200">
                         <h2 id="word" class="text-4xl md:text-6xl font-bold text-gray-800 text-center"></h2>
                         <div class="flex flex-col items-center justify-center mb-2">
                             <p id="partOfSpeech" class="text-xl text-gray-700"></p>
                             <p id="phonetics" class="text-2xl text-gray-600 mt-1 phonetics-font"></p>
+                            <p id="syllables" class="text-xl text-gray-500 mt-1"></p>
                         </div>
-                        <!-- 句子結構標示 -->
                         <div id="sentenceAnalysis" class="flex flex-wrap justify-center items-center gap-2 mt-2 text-lg md:text-xl"></div>
-                        
-                        <!-- 單字發音按鈕 -->
                         <button id="speakBtn" class="absolute bottom-6 right-6 p-3 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                         </button>
-                        <!-- 句子發音按鈕 -->
-                        <button id="speakSentenceBtn" class="absolute bottom-6 left-6 p-3 font-semibold text-lg text-blue-600 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
-                            sentence
-                        </button>
+                        <button id="speakSentenceBtn" class="absolute bottom-6 left-6 p-3 font-semibold text-lg text-blue-600 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">sentence</button>
                     </div>
-                    <!-- 卡片反面 (中文) -->
                     <div class="flip-card-back">
                         <h2 id="definition" class="text-3xl md:text-5xl font-bold text-white text-center"></h2>
                         <p id="sentence-translation" class="mt-4 text-xl md:text-2xl text-white text-center px-4"></p>
                     </div>
                 </div>
             </div>
-
-            <!-- 控制按鈕 -->
-            <div class="flex justify-center items-center gap-4">
+            <div class="flex flex-wrap justify-center items-center gap-4">
                 <button id="prevBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">上一個</button>
                 <button id="nextBtn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-600 transition-colors">下一個</button>
                 <button id="continuousBtn" class="bg-purple-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-purple-600 transition-colors">連續</button>
+                <button id="supplementBtn" class="bg-green-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-green-600 transition-colors">補充</button>
             </div>
         </div>
 
@@ -146,51 +187,58 @@
         <div id="dictationPage" class="space-y-6 hidden text-center">
             <div id="dictationProgress" class="text-center text-gray-500 text-lg"></div>
             <p class="text-2xl font-bold text-gray-700 mt-8">請聽發音並拼出單字：</p>
-            
             <div class="flex flex-col items-center justify-center h-48">
-                <!-- ===== 修改: 類別選擇 ===== -->
                 <div class="flex justify-center items-center mb-4 space-x-2">
                     <label class="text-gray-700 font-semibold mr-2">類別:</label>
                     <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
                     <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
                     <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
                 </div>
-                <!-- 發音速度選擇 -->
                 <div class="mb-4">
                     <label for="dictationSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
                     <select id="dictationSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="1.0">正常速度</option>
-                        <option value="0.7">0.7 倍</option>
-                        <option value="0.5">0.5 倍</option>
+                        <option value="1.0">正常速度</option><option value="0.7">0.7 倍</option><option value="0.5">0.5 倍</option>
                     </select>
                 </div>
-                <!-- 發音按鈕 -->
                 <button id="dictationSpeakBtn" class="p-8 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                 </button>
             </div>
-            
             <div class="mt-8 px-4">
                 <input id="answerInput" type="text" placeholder="在此輸入答案" class="w-full max-w-lg p-4 text-center text-xl rounded-xl border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
             </div>
-
             <div id="resultMessage" class="mt-4 text-2xl font-bold"></div>
-
             <div class="flex justify-center items-center gap-4 mt-6">
                 <button id="checkBtn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-600 transition-colors">檢查</button>
                 <button id="nextDictationBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">下一題</button>
             </div>
         </div>
+        
+        <!-- 配對遊戲頁面 -->
+        <div id="matchingGamePage" class="space-y-6 hidden text-center">
+            <div class="flex justify-center items-center mb-4 space-x-2">
+                <label class="text-gray-700 font-semibold mr-2">類別:</label>
+                <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
+                <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
+                <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
+            </div>
+            <div class="flex justify-between items-center px-2">
+                <div id="game-timer" class="text-2xl font-bold text-indigo-600">時間: 0s</div>
+                <div id="game-pairs-matched" class="text-xl font-semibold text-gray-600">已配對: 0 / 8</div>
+            </div>
+            <div id="game-board" class="game-grid p-2"></div>
+            <div id="game-completion-message" class="hidden flex-col items-center justify-center p-6 bg-green-100 border-2 border-green-400 rounded-lg">
+                <h3 class="text-3xl font-bold text-green-700">恭喜完成！</h3>
+                <p id="game-final-time" class="text-xl mt-2 text-green-600"></p>
+            </div>
+            <button id="new-game-btn" class="bg-green-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-green-600 transition-colors">下一局</button>
+        </div>
     </div>
 
     <script>
-        // ===== 修改: 新增P5單字 =====
         const wordCategories = {
             'P3': [
-                { english: 'beautiful', partOfSpeech: 'adj.', phonetics: "[ˈbjuːtəfl]", sentence: 'I need a beautiful dress for the party.', chinese: '美觀的, 漂亮的', chineseSentence: '為了這場派對，我需要一件美麗的洋裝。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'a beautiful dress', type: 'O' }, { text: 'for the party', type: 'A' }] },
+                { english: 'beautiful', syllables: 'beau-ti-ful', partOfSpeech: 'adj.', phonetics: "[ˈbjuːtəfl]", sentence: 'I need a beautiful dress for the party.', chinese: '美觀的, 漂亮的', chineseSentence: '為了這場派對，我需要一件美麗的洋裝。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'a beautiful dress', type: 'O' }, { text: 'for the party', type: 'A' }] },
                 { english: 'cute', partOfSpeech: 'adj.', phonetics: "[kjuːt]", sentence: 'He bought a cute sweater for Daisy.', chinese: '可愛的', chineseSentence: '他買了一件可愛的毛衣給黛西。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'bought', type: 'V' }, { text: 'a cute sweater', type: 'O' }, { text: 'for Daisy', type: 'A' }] },
                 { english: 'handsome', partOfSpeech: 'adj.', phonetics: "[ˈhænsəm]", sentence: 'Handsome is as handsome does.', chinese: '英俊的, 好看的', chineseSentence: '慷慨仁慈始為美。', sentenceAnalysis: [{ text: 'Handsome', type: 'S' }, { text: 'is', type: 'V' }, { text: 'as handsome does', type: 'A' }] },
                 { english: 'pretty', partOfSpeech: 'adj.', phonetics: "[ˈprɪti]", sentence: 'Mr. Wang has a pretty daughter.', chinese: '漂亮的, 可愛的', chineseSentence: '王先生有個漂亮的女兒。', sentenceAnalysis: [{ text: 'Mr. Wang', type: 'S' }, { text: 'has', type: 'V' }, { text: 'a pretty daughter', type: 'O' }] },
@@ -201,9 +249,9 @@
                 { english: 'dumb', partOfSpeech: 'adj.', phonetics: "[dʌm]", sentence: 'Dumb dogs are dangerous.', chinese: '啞的', chineseSentence: '無聲狗，咬死人。', sentenceAnalysis: [{ text: 'Dumb dogs', type: 'S' }, { text: 'are', type: 'V' }, { text: 'dangerous', type: 'C' }] },
                 { english: 'fat', partOfSpeech: 'adj.', phonetics: "[fæt]", sentence: 'Don\'t eat too much fat.', chinese: '肥胖的', chineseSentence: '不要攝取太多脂肪。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: 'don\'t eat', type: 'V' }, { text: 'too much fat', type: 'O' }] },
                 { english: 'heavy', partOfSpeech: 'adj.', phonetics: "[ˈhevi]", sentence: 'The box is too heavy to carry.', chinese: '重的', chineseSentence: '這個箱子太重了提不動。', sentenceAnalysis: [{ text: 'The box', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too heavy to carry', type: 'C' }] },
-                { english: 'over-weight', partOfSpeech: 'adj.', phonetics: "[ˌoʊvərˈweɪt]", sentence: 'Over-weight is bad for health.', chinese: '過重的', chineseSentence: '過重有損健康。', sentenceAnalysis: [{ text: 'Over-weight', type: 'S' }, { text: 'is', type: 'V' }, { text: 'bad for health', type: 'C' }] },
-                { english: 'under-weight', partOfSpeech: 'adj.', phonetics: "[ˌʌndərˈweɪt]", sentence: 'Dad is under-weight because he eats too little.', chinese: '過輕的', chineseSentence: '爸爸體重過輕是因為他吃的太少。', sentenceAnalysis: [{ text: 'Dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'under-weight', type: 'C' }, { text: 'because he eats too little', type: 'A' }] },
-                { english: 'nice-looking', partOfSpeech: 'adj.', phonetics: "[ˌnaɪsˈlʊkɪŋ]", sentence: 'She is a nice-looking girl.', chinese: '好看的', chineseSentence: '她是個好看的女孩。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice-looking girl', type: 'C' }] }
+                { english: 'over-weight', syllables: 'o-ver-weight', partOfSpeech: 'adj.', phonetics: "[ˌoʊvərˈweɪt]", sentence: 'Over-weight is bad for health.', chinese: '過重的', chineseSentence: '過重有損健康。', sentenceAnalysis: [{ text: 'Over-weight', type: 'S' }, { text: 'is', type: 'V' }, { text: 'bad for health', type: 'C' }] },
+                { english: 'under-weight', syllables: 'un-der-weight', partOfSpeech: 'adj.', phonetics: "[ˌʌndərˈweɪt]", sentence: 'Dad is under-weight because he eats too little.', chinese: '過輕的', chineseSentence: '爸爸體重過輕是因為他吃的太少。', sentenceAnalysis: [{ text: 'Dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'under-weight', type: 'C' }, { text: 'because he eats too little', type: 'A' }] },
+                { english: 'nice-looking', syllables: 'nice-look-ing', partOfSpeech: 'adj.', phonetics: "[ˌnaɪsˈlʊkɪŋ]", sentence: 'She is a nice-looking girl.', chinese: '好看的', chineseSentence: '她是個好看的女孩。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice-looking girl', type: 'C' }] }
             ],
             'P4': [
                 { english: 'old', partOfSpeech: 'adj.', phonetics: "[oʊld]", sentence: 'The dog is too old to run.', chinese: '年老的', chineseSentence: '這隻狗老得跑不動了。', sentenceAnalysis: [{ text: 'The dog', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too old to run', type: 'C' }] },
@@ -228,34 +276,48 @@
                 { english: 'childish', partOfSpeech: 'adj.', phonetics: "[ˈtʃaɪldɪʃ]", sentence: "Don't be so childish.", chinese: '幼稚的', chineseSentence: '不要這麼幼稚好嗎。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: "Don't be", type: 'V' }, { text: 'so childish', type: 'C' }] },
                 { english: 'childlike', partOfSpeech: 'adj.', phonetics: "[ˈtʃaɪldlaɪk]", sentence: 'She keeps a childlike mind no matter how old she is.', chinese: '孩子般的', chineseSentence: '她不論幾何年紀都仍然保有一顆赤子之心。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'keeps', type: 'V' }, { text: 'a childlike mind', type: 'O' }, { text: 'no matter how old she is', type: 'A' }] },
                 { english: 'clever', partOfSpeech: 'adj.', phonetics: "[ˈklevər]", sentence: 'He is such a clever boy!', chinese: '聰明的', chineseSentence: '這男孩真聰明!', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'such a clever boy', type: 'C' }] },
-                { english: 'intelligent', partOfSpeech: 'adj.', phonetics: "[ɪnˈtelɪdʒənt]", sentence: 'He is an intelligent student.', chinese: '聰明的', chineseSentence: '他是個聰明的學生。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'an intelligent student', type: 'C' }] },
+                { english: 'intelligent', syllables: 'in-tel-li-gent', partOfSpeech: 'adj.', phonetics: "[ɪnˈtelɪdʒənt]", sentence: 'He is an intelligent student.', chinese: '聰明的', chineseSentence: '他是個聰明的學生。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'an intelligent student', type: 'C' }] },
                 { english: 'smart', partOfSpeech: 'adj.', phonetics: "[smɑːrt]", sentence: 'John is a smart businessman.', chinese: '聰明的', chineseSentence: '約翰是個精明的生意人。', sentenceAnalysis: [{ text: 'John', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a smart businessman', type: 'C' }] },
                 { english: 'wise', partOfSpeech: 'adj.', phonetics: "[waɪz]", sentence: 'Are you a wise guy?', chinese: '明智的', chineseSentence: '你是個聰明人嗎?', sentenceAnalysis: [{ text: 'Are', type: 'V' }, { text: 'you', type: 'S' }, { text: 'a wise guy', type: 'C' }] },
                 { english: 'careful', partOfSpeech: 'adj.', phonetics: "[ˈkerfəl]", sentence: 'Be careful with this machine.', chinese: '仔細的', chineseSentence: '小心處理這台機器。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: 'Be', type: 'V' }, { text: 'careful with this machine', type: 'C' }] },
                 { english: 'careless', partOfSpeech: 'adj.', phonetics: "[ˈkerləs]", sentence: 'He is careless about everything.', chinese: '粗心的', chineseSentence: '他對任何事都態度草率。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'careless about everything', type: 'C' }] },
-                { english: 'confident', partOfSpeech: 'adj.', phonetics: "[ˈkɑːnfədənt]", sentence: 'Sam was confident about what he was good at.', chinese: '有自信的', chineseSentence: '山姆對於自己拿手的東西都很有信心。', sentenceAnalysis: [{ text: 'Sam', type: 'S' }, { text: 'was', type: 'V' }, { text: 'confident about what he was good at', type: 'C' }] },
-                { english: 'considerate', partOfSpeech: 'adj.', phonetics: "[kənˈsɪdərət]", sentence: 'The nurse is very considerate to us.', chinese: '體貼的', chineseSentence: '護士相當照顧我們。', sentenceAnalysis: [{ text: 'The nurse', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very considerate to us', type: 'C' }] },
+                { english: 'confident', syllables: 'con-fi-dent', partOfSpeech: 'adj.', phonetics: "[ˈkɑːnfədənt]", sentence: 'Sam was confident about what he was good at.', chinese: '有自信的', chineseSentence: '山姆對於自己拿手的東西都很有信心。', sentenceAnalysis: [{ text: 'Sam', type: 'S' }, { text: 'was', type: 'V' }, { text: 'confident about what he was good at', type: 'C' }] },
+                { english: 'considerate', syllables: 'con-sid-er-ate', partOfSpeech: 'adj.', phonetics: "[kənˈsɪdərət]", sentence: 'The nurse is very considerate to us.', chinese: '體貼的', chineseSentence: '護士相當照顧我們。', sentenceAnalysis: [{ text: 'The nurse', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very considerate to us', type: 'C' }] },
                 { english: 'cool', partOfSpeech: 'adj.', phonetics: "[kuːl]", sentence: 'She was cool toward her mother today.', chinese: '冷淡的', chineseSentence: '她今天對媽媽的態度非常冷淡。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'was', type: 'V' }, { text: 'cool', type: 'C' }, { text: 'toward her mother today', type: 'A' }] },
                 { english: 'crazy', partOfSpeech: 'adj.', phonetics: "[ˈkreɪzi]", sentence: 'People are crazy about Jeremy Lin recently.', chinese: '瘋狂的', chineseSentence: '人們最近對林書豪瘋狂。', sentenceAnalysis: [{ text: 'People', type: 'S' }, { text: 'are', type: 'V' }, { text: 'crazy', type: 'C' }, { text: 'about Jeremy Lin recently', type: 'A' }] },
                 { english: 'mad', partOfSpeech: 'adj.', phonetics: "[mæd]", sentence: 'She was mad at me for standing her up.', chinese: '發瘋的', chineseSentence: '她因為我放她鴿子而生我的氣。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'was', type: 'V' }, { text: 'mad at me', type: 'C' }, { text: 'for standing her up', type: 'A' }] },
-                { english: 'cruel', partOfSpeech: 'adj.', phonetics: "[ˈkruːəl]", sentence: "Please don't say cruel words.", chinese: '殘酷的', chineseSentence: '請不要說尖刻的話語。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: "don't say", type: 'V' }, { text: 'cruel words', type: 'O' }] },
-                { english: 'curious', partOfSpeech: 'adj.', phonetics: "[ˈkjʊriəs]", sentence: 'Kids are curious about everything.', chinese: '好奇的', chineseSentence: '小孩子對於任何事情都感到好奇。', sentenceAnalysis: [{ text: 'Kids', type: 'S' }, { text: 'are', type: 'V' }, { text: 'curious about everything', type: 'C' }] },
-                { english: 'diligent', partOfSpeech: 'adj.', phonetics: "[ˈdɪlɪdʒənt]", sentence: 'She is a diligent student.', chinese: '勤勉的', chineseSentence: '她是一個用功的學生。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a diligent student', type: 'C' }] }
+                { english: 'cruel', partOfSpeech: 'adj.', phonetics: "[ˈcruːəl]", sentence: "Please don't say cruel words.", chinese: '殘酷的', chineseSentence: '請不要說尖刻的話語。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: "don't say", type: 'V' }, { text: 'cruel words', type: 'O' }] },
+                { english: 'curious', syllables: 'cu-ri-ous', partOfSpeech: 'adj.', phonetics: "[ˈkjʊriəs]", sentence: 'Kids are curious about everything.', chinese: '好奇的', chineseSentence: '小孩子對於任何事情都感到好奇。', sentenceAnalysis: [{ text: 'Kids', type: 'S' }, { text: 'are', type: 'V' }, { text: 'curious about everything', type: 'C' }] },
+                { english: 'diligent', syllables: 'dil-i-gent', partOfSpeech: 'adj.', phonetics: "[ˈdɪlɪdʒənt]", sentence: 'She is a diligent student.', chinese: '勤勉的', chineseSentence: '她是一個用功的學生。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a diligent student', type: 'C' }] }
             ]
         };
 
         let currentCategory = 'P3';
         let currentIndex = 0;
-        let currentDictationWordIndex;
         let isReadingContinuously = false;
+        let activeWords = wordCategories[currentCategory];
 
-        // Flashcard elements
+        // 將所有單字整合到一個陣列中以便搜尋
+        const allWordsWithCategory = [];
+        Object.keys(wordCategories).forEach(category => {
+            wordCategories[category].forEach((word, index) => {
+                allWordsWithCategory.push({ ...word, category: category, originalIndex: index });
+            });
+        });
+
+        // 全域元素
+        const categoryButtons = document.querySelectorAll('.category-btn');
         const flashcardTab = document.getElementById('flashcardTab');
+        const dictationTab = document.getElementById('dictationTab');
+        const matchingGameTab = document.getElementById('matchingGameTab');
+        
+        // 單字卡元素
         const flashcardPage = document.getElementById('flashcardPage');
         const flashcard = document.getElementById('flashcard');
         const wordEl = document.getElementById('word');
         const partOfSpeechEl = document.getElementById('partOfSpeech');
         const phoneticsEl = document.getElementById('phonetics');
+        const syllablesEl = document.getElementById('syllables');
         const sentenceAnalysisEl = document.getElementById('sentenceAnalysis');
         const definitionEl = document.getElementById('definition');
         const sentenceTranslationEl = document.getElementById('sentence-translation');
@@ -263,12 +325,15 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const continuousBtn = document.getElementById('continuousBtn');
+        const supplementBtn = document.getElementById('supplementBtn');
         const speakBtn = document.getElementById('speakBtn');
         const speakSentenceBtn = document.getElementById('speakSentenceBtn');
         const flashcardSpeechRateSelect = document.getElementById('flashcardSpeechRateSelect');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchResultEl = document.getElementById('searchResult');
 
-        // Dictation elements
-        const dictationTab = document.getElementById('dictationTab');
+        // 聽寫元素
         const dictationPage = document.getElementById('dictationPage');
         const dictationProgress = document.getElementById('dictationProgress');
         const dictationSpeakBtn = document.getElementById('dictationSpeakBtn');
@@ -277,14 +342,24 @@
         const checkBtn = document.getElementById('checkBtn');
         const nextDictationBtn = document.getElementById('nextDictationBtn');
         const dictationSpeechRateSelect = document.getElementById('dictationSpeechRateSelect');
-        
-        // Category elements
-        const categoryButtons = document.querySelectorAll('.category-btn');
-        
-        // 目前作用中的單字列表
-        let activeWords = wordCategories[currentCategory];
+        let currentDictationWordIndex;
 
-        // Function to speak the word or sentence
+        // 配對遊戲元素與變數
+        const matchingGamePage = document.getElementById('matchingGamePage');
+        const gameBoard = document.getElementById('game-board');
+        const gameTimerEl = document.getElementById('game-timer');
+        const gamePairsMatchedEl = document.getElementById('game-pairs-matched');
+        const gameCompletionMessageEl = document.getElementById('game-completion-message');
+        const gameFinalTimeEl = document.getElementById('game-final-time');
+        const newGameBtn = document.getElementById('new-game-btn');
+        let firstCard, secondCard;
+        let lockBoard = false;
+        let matchedPairs = 0;
+        let timerInterval;
+        let seconds = 0;
+
+
+        // --- 通用函式 ---
         function speak(text, rate = 1.0) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -292,12 +367,9 @@
                 utterance.lang = 'en-US';
                 utterance.rate = rate;
                 window.speechSynthesis.speak(utterance);
-            } else {
-                console.log('抱歉，您的瀏覽器不支援語音合成功能。');
             }
         }
         
-        // --- 類別切換邏輯 ---
         function updateCategoryButtonsUI(activeCategory) {
             categoryButtons.forEach(btn => {
                 if (btn.dataset.category === activeCategory) {
@@ -312,40 +384,71 @@
 
         function changeCategory(newCategory) {
             if (currentCategory === newCategory) return;
-
             currentCategory = newCategory;
             activeWords = wordCategories[currentCategory];
-            currentIndex = 0;
-            
             updateCategoryButtonsUI(currentCategory);
-
+            
             if (!flashcardPage.classList.contains('hidden')) {
+                currentIndex = 0;
                 updateCard(currentIndex);
             }
             if (!dictationPage.classList.contains('hidden')) {
                 startDictation();
             }
+            if (!matchingGamePage.classList.contains('hidden')) {
+                startNewMatchingGame();
+            }
         }
         
         categoryButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                changeCategory(btn.dataset.category);
-            });
+            btn.addEventListener('click', () => changeCategory(btn.dataset.category));
         });
 
+        // --- 搜尋邏輯 ---
+        function handleSearch() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            searchResultEl.textContent = ''; // 清除先前的訊息
+            if (!searchTerm) return;
 
-        // --- 單字卡頁面邏輯 ---
+            // 優先尋找開頭相符的單字
+            let foundWord = allWordsWithCategory.find(word => word.english.toLowerCase().startsWith(searchTerm));
+            // 若找不到，則尋找包含關鍵字的單字
+            if (!foundWord) {
+                foundWord = allWordsWithCategory.find(word => word.english.toLowerCase().includes(searchTerm));
+            }
+
+            if (foundWord) {
+                // 設定當前類別與單字列表
+                currentCategory = foundWord.category;
+                activeWords = wordCategories[currentCategory];
+                
+                // 更新UI
+                updateCategoryButtonsUI(currentCategory);
+                updateCard(foundWord.originalIndex); // 使用原始索引來顯示單字卡
+                searchInput.value = ''; // 清空搜尋欄
+            } else {
+                searchResultEl.textContent = '找不到對應的單字';
+            }
+        }
+
+        // --- 單字卡邏輯 ---
         function updateCard(index) {
             currentIndex = index;
             const currentWord = activeWords[currentIndex];
             wordEl.textContent = currentWord.english;
             partOfSpeechEl.textContent = currentWord.partOfSpeech;
             phoneticsEl.textContent = currentWord.phonetics;
+            
+            if (currentWord.syllables) {
+                syllablesEl.textContent = currentWord.syllables;
+            } else {
+                syllablesEl.textContent = '';
+            }
+
             definitionEl.textContent = currentWord.chinese;
             sentenceTranslationEl.textContent = currentWord.chineseSentence;
             progressEl.textContent = `${currentIndex + 1} / ${activeWords.length}`;
             flashcard.classList.remove('flipped');
-            
             updateSentenceAnalysis(currentWord.sentenceAnalysis);
         }
 
@@ -354,112 +457,109 @@
             analysisData.forEach(item => {
                 const wordContainer = document.createElement('div');
                 wordContainer.className = 'flex flex-col items-center';
-                
                 const wordSpan = document.createElement('span');
                 wordSpan.textContent = item.text;
-                if (item.type === 'V') {
-                    wordSpan.classList.add('text-red-500', 'font-bold');
-                }
-                
+                if (item.type === 'V') wordSpan.classList.add('text-red-500', 'font-bold');
                 const typeSpan = document.createElement('span');
                 typeSpan.textContent = `(${item.type})`;
                 typeSpan.classList.add('text-xs', 'text-gray-500');
-
                 wordContainer.appendChild(wordSpan);
                 wordContainer.appendChild(typeSpan);
                 sentenceAnalysisEl.appendChild(wordContainer);
             });
         }
-
-        flashcard.addEventListener('click', (event) => {
-            if (event.target.closest('button')) return;
-            if (!isReadingContinuously) {
-                flashcard.classList.toggle('flipped');
-            }
-        });
-
-        speakBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const rate = parseFloat(flashcardSpeechRateSelect.value);
-            speak(activeWords[currentIndex].english, rate);
-        });
-
-        speakSentenceBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const rate = parseFloat(flashcardSpeechRateSelect.value);
-            speak(activeWords[currentIndex].sentence, rate);
-        });
-
-        nextBtn.addEventListener('click', () => {
-            if (isReadingContinuously) {
-                window.speechSynthesis.cancel();
-                isReadingContinuously = false;
-            }
-            currentIndex = (currentIndex + 1) % activeWords.length;
-            updateCard(currentIndex);
-        });
-
-        prevBtn.addEventListener('click', () => {
-            if (isReadingContinuously) {
-                window.speechSynthesis.cancel();
-                isReadingContinuously = false;
-            }
-            currentIndex = (currentIndex - 1 + activeWords.length) % activeWords.length;
-            updateCard(currentIndex);
-        });
-
-        continuousBtn.addEventListener('click', () => {
-            if (isReadingContinuously) {
-                window.speechSynthesis.cancel();
-                isReadingContinuously = false;
-                continuousBtn.textContent = '連續';
-                continuousBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                continuousBtn.classList.add('bg-purple-500', 'hover:bg-purple-600');
-                return;
-            }
-            
-            isReadingContinuously = true;
-            continuousBtn.textContent = '停止';
-            continuousBtn.classList.add('bg-red-500', 'hover:bg-red-600');
-            continuousBtn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
-
-            let currentContinuousIndex = currentIndex;
-            
-            function readWordWithRepetitions(wordIndex, repetition = 0) {
-                if (!isReadingContinuously || wordIndex >= activeWords.length) {
+        if (flashcard) {
+            flashcard.addEventListener('click', (event) => {
+                if (event.target.closest('button')) return;
+                if (!isReadingContinuously) flashcard.classList.toggle('flipped');
+            });
+            speakBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rate = parseFloat(flashcardSpeechRateSelect.value);
+                speak(activeWords[currentIndex].english, rate);
+            });
+            speakSentenceBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rate = parseFloat(flashcardSpeechRateSelect.value);
+                speak(activeWords[currentIndex].sentence, rate);
+            });
+            nextBtn.addEventListener('click', () => {
+                if (isReadingContinuously) {
+                    window.speechSynthesis.cancel();
                     isReadingContinuously = false;
-                    continuousBtn.click();
+                }
+                currentIndex = (currentIndex + 1) % activeWords.length;
+                updateCard(currentIndex);
+            });
+            prevBtn.addEventListener('click', () => {
+                if (isReadingContinuously) {
+                    window.speechSynthesis.cancel();
+                    isReadingContinuously = false;
+                }
+                currentIndex = (currentIndex - 1 + activeWords.length) % activeWords.length;
+                updateCard(currentIndex);
+            });
+            
+            supplementBtn.addEventListener('click', () => {
+                const currentWord = activeWords[currentIndex].english;
+                const encodedWord = encodeURIComponent(currentWord);
+                const url = `https://www.ehanlin.com.tw/app/keyword/國中/英語/${encodedWord}.html`;
+                window.open(url, '_blank');
+            });
+            
+            continuousBtn.addEventListener('click', () => {
+                if (isReadingContinuously) {
+                    window.speechSynthesis.cancel();
+                    isReadingContinuously = false;
+                    continuousBtn.textContent = '連續';
+                    continuousBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    continuousBtn.classList.add('bg-purple-500', 'hover:bg-purple-600');
                     return;
                 }
-                
-                if (repetition < 3) {
-                    updateCard(wordIndex);
-                    const rate = parseFloat(flashcardSpeechRateSelect.value);
-                    const utterance = new SpeechSynthesisUtterance(activeWords[wordIndex].english);
-                    utterance.lang = 'en-US';
-                    utterance.rate = rate;
-                    utterance.onend = () => {
-                        if (isReadingContinuously) {
-                            setTimeout(() => readWordWithRepetitions(wordIndex, repetition + 1), 200);
-                        }
-                    };
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    currentContinuousIndex++;
-                    if (currentContinuousIndex < activeWords.length) {
-                        setTimeout(() => {
-                            readWordWithRepetitions(currentContinuousIndex, 0);
-                        }, 1000);
-                    } else {
+                isReadingContinuously = true;
+                continuousBtn.textContent = '停止';
+                continuousBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                continuousBtn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                let currentContinuousIndex = currentIndex;
+                function readWordWithRepetitions(wordIndex, repetition = 0) {
+                    if (!isReadingContinuously || wordIndex >= activeWords.length) {
                         isReadingContinuously = false;
                         continuousBtn.click();
+                        return;
+                    }
+                    if (repetition < 3) {
+                        updateCard(wordIndex);
+                        const rate = parseFloat(flashcardSpeechRateSelect.value);
+                        const utterance = new SpeechSynthesisUtterance(activeWords[wordIndex].english);
+                        utterance.lang = 'en-US';
+                        utterance.rate = rate;
+                        utterance.onend = () => {
+                            if (isReadingContinuously) setTimeout(() => readWordWithRepetitions(wordIndex, repetition + 1), 200);
+                        };
+                        window.speechSynthesis.speak(utterance);
+                    } else {
+                        currentContinuousIndex++;
+                        if (currentContinuousIndex < activeWords.length) {
+                            setTimeout(() => readWordWithRepetitions(currentContinuousIndex, 0), 1000);
+                        } else {
+                            isReadingContinuously = false;
+                            continuousBtn.click();
+                        }
                     }
                 }
-            }
-            readWordWithRepetitions(currentContinuousIndex, 0);
-        });
+                readWordWithRepetitions(currentContinuousIndex, 0);
+            });
+            
+            // 搜尋事件監聽
+            searchBtn.addEventListener('click', handleSearch);
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    handleSearch();
+                }
+            });
+        }
 
-        // --- 聽寫頁面邏輯 ---
+        // --- 聽寫邏輯 ---
         function startDictation() {
             currentDictationWordIndex = Math.floor(Math.random() * activeWords.length);
             answerInput.value = '';
@@ -468,49 +568,144 @@
             checkBtn.classList.remove('hidden');
             dictationProgress.textContent = `${activeWords.length} 個單字隨機抽考`;
         }
-
-        dictationSpeakBtn.addEventListener('click', () => {
-            const rate = parseFloat(dictationSpeechRateSelect.value);
-            speak(activeWords[currentDictationWordIndex].english, rate);
-        });
-
-        checkBtn.addEventListener('click', () => {
-            const userAnswer = answerInput.value.trim().toLowerCase();
-            const correctAnswer = activeWords[currentDictationWordIndex].english.toLowerCase();
-
-            if (userAnswer === correctAnswer) {
-                resultMessage.textContent = '答對了！';
-                resultMessage.className = 'mt-4 text-2xl font-bold correct';
-                answerInput.disabled = true;
-            } else {
-                resultMessage.textContent = `答錯了，正確答案是：${activeWords[currentDictationWordIndex].english}`;
-                resultMessage.className = 'mt-4 text-2xl font-bold incorrect';
-            }
-        });
-
-        nextDictationBtn.addEventListener('click', () => {
-            startDictation();
-        });
+        if (dictationPage) {
+            dictationSpeakBtn.addEventListener('click', () => {
+                const rate = parseFloat(dictationSpeechRateSelect.value);
+                speak(activeWords[currentDictationWordIndex].english, rate);
+            });
+            checkBtn.addEventListener('click', () => {
+                const userAnswer = answerInput.value.trim().toLowerCase();
+                const correctAnswer = activeWords[currentDictationWordIndex].english.toLowerCase();
+                if (userAnswer === correctAnswer) {
+                    resultMessage.textContent = '答對了！';
+                    resultMessage.className = 'mt-4 text-2xl font-bold correct';
+                    answerInput.disabled = true;
+                } else {
+                    resultMessage.textContent = `答錯了，正確答案是：${activeWords[currentDictationWordIndex].english}`;
+                    resultMessage.className = 'mt-4 text-2xl font-bold incorrect';
+                }
+            });
+            nextDictationBtn.addEventListener('click', startDictation);
+            answerInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    checkBtn.click();
+                }
+            });
+        }
         
-        answerInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                checkBtn.click();
+        // --- 配對遊戲邏輯 (修改後) ---
+        function startNewMatchingGame() {
+            clearInterval(timerInterval);
+            seconds = 0;
+            gameTimerEl.textContent = '時間: 0s';
+            matchedPairs = 0;
+            gamePairsMatchedEl.textContent = '已配對: 0 / 8';
+            gameBoard.innerHTML = '';
+            gameCompletionMessageEl.classList.add('hidden');
+            lockBoard = false;
+            firstCard = null;
+            secondCard = null;
+            
+            const selectedWords = [...activeWords].sort(() => 0.5 - Math.random()).slice(0, 8);
+            const gameCardsData = [];
+            selectedWords.forEach(word => {
+                gameCardsData.push({ content: word.english, pairId: word.english, type: 'en' });
+                gameCardsData.push({ content: word.chinese, pairId: word.english, type: 'zh' });
+            });
+            
+            gameCardsData.sort(() => 0.5 - Math.random());
+            
+            gameCardsData.forEach(cardData => {
+                const card = document.createElement('div');
+                card.classList.add('game-card');
+                
+                if (cardData.type === 'en') {
+                    card.classList.add('game-card-en');
+                } else {
+                    card.classList.add('game-card-zh');
+                }
+
+                card.dataset.pairId = cardData.pairId;
+                card.textContent = cardData.content;
+                card.addEventListener('click', () => selectCard(card));
+                gameBoard.appendChild(card);
+            });
+            
+            timerInterval = setInterval(() => {
+                seconds++;
+                gameTimerEl.textContent = `時間: ${seconds}s`;
+            }, 1000);
+        }
+
+        function selectCard(card) {
+            if (lockBoard || card === firstCard || card.classList.contains('matched')) return;
+            
+            card.classList.add('selected');
+
+            if (!firstCard) {
+                firstCard = card;
+                return;
             }
-        });
+
+            secondCard = card;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            lockBoard = true;
+            let isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
+            isMatch ? disableCards() : unselectCards();
+        }
+
+        function disableCards() {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            
+            matchedPairs++;
+            gamePairsMatchedEl.textContent = `已配對: ${matchedPairs} / 8`;
+            
+            resetBoard();
+
+            if (matchedPairs === 8) {
+                clearInterval(timerInterval);
+                gameCompletionMessageEl.classList.remove('hidden');
+                gameFinalTimeEl.textContent = `您花了 ${seconds} 秒！`;
+            }
+        }
+
+        function unselectCards() {
+            setTimeout(() => {
+                firstCard.classList.remove('selected');
+                secondCard.classList.remove('selected');
+                resetBoard();
+            }, 1000);
+        }
+
+        function resetBoard() {
+            [firstCard, secondCard, lockBoard] = [null, null, false];
+        }
+
+        if(newGameBtn) {
+            newGameBtn.addEventListener('click', startNewMatchingGame);
+        }
+
 
         // --- 頁面切換邏輯 ---
         function showPage(pageId) {
             flashcardPage.classList.add('hidden');
             dictationPage.classList.add('hidden');
+            matchingGamePage.classList.add('hidden');
+
             flashcardTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
             dictationTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-            flashcardTab.classList.add('text-gray-500');
-            dictationTab.classList.add('text-gray-500');
+            matchingGameTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
             
-            if (isReadingContinuously) {
-                continuousBtn.click();
-            }
+            const allTabs = [flashcardTab, dictationTab, matchingGameTab];
+            allTabs.forEach(tab => tab.classList.add('text-gray-500'));
+            
+            if (isReadingContinuously) continuousBtn.click();
+            clearInterval(timerInterval);
 
             if (pageId === 'flashcard') {
                 flashcardPage.classList.remove('hidden');
@@ -522,11 +717,17 @@
                 dictationTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
                 dictationTab.classList.remove('text-gray-500');
                 startDictation();
+            } else if (pageId === 'matchingGame') {
+                matchingGamePage.classList.remove('hidden');
+                matchingGameTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                matchingGameTab.classList.remove('text-gray-500');
+                startNewMatchingGame();
             }
         }
 
         flashcardTab.addEventListener('click', () => showPage('flashcard'));
         dictationTab.addEventListener('click', () => showPage('dictation'));
+        matchingGameTab.addEventListener('click', () => showPage('matchingGame'));
 
         window.onload = () => {
             updateCategoryButtonsUI(currentCategory);
