@@ -187,9 +187,38 @@
     </div>
 
     <script>
-        // ===== 修改: 新增U2單字 =====
         const wordCategories = {
-            'U1': [],
+            'U1': [
+                { english: 'handsome', partOfSpeech: 'adj.', phonetics: "[ˈhænsəm]", sentence: "Your father is handsome.", chinese: '英俊的', chineseSentence: '你的父親很英俊。', sentenceAnalysis: [{ text: 'Your father', type: 'S' }, { text: 'is', type: 'V' }, { text: 'handsome', type: 'C' }] },
+                { english: 'new', partOfSpeech: 'adj.', phonetics: "[njuː]", sentence: "Is this your new school bag?", chinese: '新的', chineseSentence: '這是你的新書包嗎？', sentenceAnalysis: [{ text: 'Is', type: 'V' }, { text: 'this', type: 'S' }, { text: 'your new school bag?', type: 'C' }] },
+                { english: 'classmate', partOfSpeech: 'n.', phonetics: "[ˈklæsmeɪt]", sentence: "She's my classmate.", chinese: '同學', chineseSentence: '她是我同學。', sentenceAnalysis: [{ text: "She's", type: 'S+V' }, { text: 'my classmate', type: 'C' }] },
+                { english: 'young', partOfSpeech: 'adj.', phonetics: "[jʌŋ]", sentence: "He's young.", chinese: '年輕的', chineseSentence: '他很年輕。', sentenceAnalysis: [{ text: "He's", type: 'S+V' }, { text: 'young', type: 'C' }] },
+                { english: 'woman', partOfSpeech: 'n.', phonetics: "[ˈwʊmən]", sentence: "Who's that beautiful tall woman?", chinese: '女人', chineseSentence: '那個美麗高挑的女人是誰？', sentenceAnalysis: [{ text: "Who's", type: 'Q+V' }, { text: 'that beautiful tall woman?', type: 'S' }] },
+                { english: 'very', partOfSpeech: 'adv.', phonetics: "[ˈveri]", sentence: "This tree is very tall.", chinese: '非常', chineseSentence: '這棵樹非常高。', sentenceAnalysis: [{ text: 'This tree', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very tall', type: 'C' }] },
+                { english: 'beautiful', partOfSpeech: 'adj.', phonetics: "[ˈbjuːtɪfl]", sentence: "Your school is big and beautiful.", chinese: '美麗的', chineseSentence: '你的學校又大又漂亮。', sentenceAnalysis: [{ text: 'Your school', type: 'S' }, { text: 'is', type: 'V' }, { text: 'big and beautiful', type: 'C' }] },
+                { english: 'too', partOfSpeech: 'adv.', phonetics: "[tuː]", sentence: "My dad is a teacher, too.", chinese: '也', chineseSentence: '我爸爸也是老師。', sentenceAnalysis: [{ text: 'My dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a teacher, too', type: 'C' }] },
+                { english: 'Nice to meet you.', partOfSpeech: '', phonetics: "[naɪs tu mit ju]", sentence: "Nice to meet you, Mr. Brown.", chinese: '很高興認識你', chineseSentence: '很高興認識你，布朗先生。', sentenceAnalysis: [] },
+                { english: 'cousin', partOfSpeech: 'n.', phonetics: "[ˈkʌzn]", sentence: "Sharon is my cousin, not my sister.", chinese: '堂表兄弟姊妹', chineseSentence: '雪倫是我的堂姊，不是我姊姊。', sentenceAnalysis: [{ text: 'Sharon', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my cousin, not my sister', type: 'C' }] },
+                { english: 'really', partOfSpeech: 'adv.', phonetics: "[ˈriːəli]", sentence: "Oh, really? I am, too.", chinese: '真地', chineseSentence: '哦，真的嗎？我也是。', sentenceAnalysis: [] },
+                { english: 'year(s) old', partOfSpeech: '', phonetics: "[jɪr(z) oʊld]", sentence: "Her son is 17 years old.", chinese: '...歲', chineseSentence: '她的兒子17歲。', sentenceAnalysis: [{ text: 'Her son', type: 'S' }, { text: 'is', type: 'V' }, { text: '17 years old', type: 'C' }] },
+                { english: 'I see.', partOfSpeech: '', phonetics: "[aɪ siː]", sentence: "I see.", chinese: '我知道了', chineseSentence: '我知道了。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'see', type: 'V' }] },
+                { english: 'singer', partOfSpeech: 'n.', phonetics: "[ˈsɪŋər]", sentence: "He's a singer.", chinese: '歌手', chineseSentence: '他是個歌手。', sentenceAnalysis: [{ text: "He's", type: 'S+V' }, { text: 'a singer', type: 'C' }] },
+                { english: 'office worker', partOfSpeech: 'n.', phonetics: "[ˈɔːfɪs ˈwɜːrkər]", sentence: "I am an office worker, and my wife is, too.", chinese: '上班族', chineseSentence: '我是上班族，我太太也是。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'am', type: 'V' }, { text: 'an office worker', type: 'C' }] },
+                { english: 'housewife', partOfSpeech: 'n.', phonetics: "[ˈhaʊswaɪf]", sentence: "My grandmother is a housewife.", chinese: '家庭主婦', chineseSentence: '我的祖母是家庭主婦。', sentenceAnalysis: [{ text: 'My grandmother', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a housewife', type: 'C' }] },
+                { english: 'police officer', partOfSpeech: 'n.', phonetics: "[pəˈliːs ˈɔːfɪsər]", sentence: "He is a police officer.", chinese: '警察', chineseSentence: '他是警察。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a police officer', type: 'C' }] },
+                { english: 'writer', partOfSpeech: 'n.', phonetics: "[ˈraɪtər]", sentence: "Are you a writer?", chinese: '作家', chineseSentence: '你是作家嗎？', sentenceAnalysis: [{ text: 'Are', type: 'V' }, { text: 'you', type: 'S' }, { text: 'a writer?', type: 'C' }] },
+                { english: 'uncle', partOfSpeech: 'n.', phonetics: "[ˈʌŋkl]", sentence: "My uncle is a good cook.", chinese: '叔伯；舅舅', chineseSentence: '我叔叔很會做菜。', sentenceAnalysis: [{ text: 'My uncle', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a good cook', type: 'C' }] },
+                { english: 'aunt', partOfSpeech: 'n.', phonetics: "[ænt]", sentence: "Aunt Shelly is my mother's good friend.", chinese: '阿姨；姑姑', chineseSentence: '雪莉阿姨是我媽媽的好朋友。', sentenceAnalysis: [{ text: 'Aunt Shelly', type: 'S' }, { text: 'is', type: 'V' }, { text: "my mother's good friend", type: 'C' }] },
+                { english: 'wife', partOfSpeech: 'n.', phonetics: "[waɪf]", sentence: "Isn't his wife a doctor?", chinese: '妻子', chineseSentence: '他太太不是醫生嗎？', sentenceAnalysis: [{ text: "Isn't", type: 'V' }, { text: 'his wife', type: 'S' }, { text: 'a doctor?', type: 'C' }] },
+                { english: 'daughter', partOfSpeech: 'n.', phonetics: "[ˈdɔːtər]", sentence: "Julia is Mr. and Mrs. Wilson's daughter.", chinese: '女兒', chineseSentence: '茱莉亞是威爾森夫婦的女兒。', sentenceAnalysis: [{ text: 'Julia', type: 'S' }, { text: 'is', type: 'V' }, { text: "Mr. and Mrs. Wilson's daughter", type: 'C' }] },
+                { english: 'husband', partOfSpeech: 'n.', phonetics: "[ˈhʌzbənd]", sentence: "Her husband is a nurse.", chinese: '丈夫', chineseSentence: '她丈夫是護士。', sentenceAnalysis: [{ text: 'Her husband', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nurse', type: 'C' }] },
+                { english: 'son', partOfSpeech: 'n.', phonetics: "[sʌn]", sentence: "Mrs. Fang is a mother of three sons.", chinese: '兒子', chineseSentence: '方太太是三個兒子的媽媽。', sentenceAnalysis: [{ text: 'Mrs. Fang', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a mother of three sons', type: 'C' }] },
+                { english: 'dear', partOfSpeech: 'adj.', phonetics: "[dɪr]", sentence: "This is a picture of my dear students.", chinese: '親愛的', chineseSentence: '這是我親愛學生的照片。', sentenceAnalysis: [{ text: 'This', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a picture of my dear students', type: 'C' }] },
+                { english: 'family', partOfSpeech: 'n.', phonetics: "[ˈfæməli]", sentence: "How's your family?", chinese: '家庭；家人', chineseSentence: '你家人好嗎？', sentenceAnalysis: [{ text: "How's", type: 'Q+V' }, { text: 'your family?', type: 'S' }] },
+                { english: 'elementary school', partOfSpeech: 'n.', phonetics: "[ˌeləˈmentri skuːl]", sentence: "She is an elementary school student.", chinese: '國小', chineseSentence: '她是國小生。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'an elementary school student', type: 'C' }] },
+                { english: 'junior high school', partOfSpeech: 'n.', phonetics: "[ˈdʒuːnjər haɪ skuːl]", sentence: "My mom is a junior high school teacher.", chinese: '國中', chineseSentence: '我媽媽是國中老師。', sentenceAnalysis: [{ text: 'My mom', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a junior high school teacher', type: 'C' }] },
+                { english: 'baby', partOfSpeech: 'n.; adj.', phonetics: "[ˈbeɪbi]", sentence: "The baby's father is Mr. Martin.", chinese: '嬰兒；年幼的', chineseSentence: '這嬰兒的父親是馬丁先生。', sentenceAnalysis: [{ text: "The baby's father", type: 'S' }, { text: 'is', type: 'V' }, { text: 'Mr. Martin', type: 'C' }] }
+            ],
             'U2': [
                 { english: 'house', partOfSpeech: 'n.', phonetics: "[haʊs]", sentence: "Jimmy is not in the house.", chinese: '房子', chineseSentence: '吉米不在家裡。', sentenceAnalysis: [{ text: 'Jimmy', type: 'S' }, { text: 'is not', type: 'V' }, { text: 'in the house', type: 'A' }] },
                 { english: 'parents', partOfSpeech: 'n.', phonetics: "[ˈperənts]", sentence: "Her parents are very nice.", chinese: '父母親', chineseSentence: '她的父母很和藹。', sentenceAnalysis: [{ text: 'Her parents', type: 'S' }, { text: 'are', type: 'V' }, { text: 'very nice', type: 'C' }] },
@@ -550,4 +579,3 @@
     </script>
 </body>
 </html>
-
