@@ -67,7 +67,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) inset;
         }
 
-        /* --- 配對遊戲樣式 (修改後) --- */
+        /* --- 配對遊戲樣式 --- */
         .game-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -127,32 +127,51 @@
             <button id="flashcardTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">單字卡</button>
             <button id="dictationTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">聽寫</button>
             <button id="matchingGameTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">配對遊戲</button>
+            <button id="verbFormsTab" class="py-2 px-4 text-lg font-semibold transition-colors duration-200">動詞三態</button>
         </div>
 
         <!-- 單字卡頁面 -->
         <div id="flashcardPage" class="space-y-6">
             <!-- 進度顯示 -->
-            <div id="progress" class="text-center text-gray-500 text-lg">1 / 3</div>
-            <div class="flex justify-center items-center mb-4 space-x-2">
-                <label class="text-gray-700 font-semibold mr-2">類別:</label>
-                <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
-                <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
-                <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
-            </div>
-            <div class="flex justify-center items-center mb-4">
-                <label for="flashcardSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
-                <select id="flashcardSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="1.0">正常速度</option>
-                    <option value="0.7">0.7 倍</option>
-                    <option value="0.5">0.5 倍</option>
-                </select>
+            <div id="progress" class="text-center text-gray-500 text-lg">1 / 14</div>
+            <!-- 修改後的類別選擇 -->
+            <div class="flex justify-center items-center mb-4 space-x-4">
+                 <div class="flex items-center">
+                    <label for="categorySelectFlashcard" class="text-gray-700 font-semibold mr-2">類別:</label>
+                    <select id="categorySelectFlashcard" class="category-select p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <optgroup label="課本單">
+                            <option value="課本單U1">課本單U1</option>
+                            <option value="課本單U2">課本單U2</option>
+                            <option value="課本單U3">課本單U3</option>
+                            <option value="課本單U4">課本單U4</option>
+                            <option value="課本單U5">課本單U5</option>
+                            <option value="課本單U6">課本單U6</option>
+                        </optgroup>
+                        <optgroup label="2K單">
+                            <option value="2K單P1">2K單P1</option>
+                            <option value="2K單P2">2K單P2</option>
+                            <option value="2K單P3">2K單P3</option>
+                            <option value="2K單P4">2K單P4</option>
+                            <option value="2K單P5">2K單P5</option>
+                            <option value="2K單P6">2K單P6</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="flex items-center">
+                    <label for="flashcardSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
+                    <select id="flashcardSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="1.0">正常速度</option>
+                        <option value="0.7">0.7 倍</option>
+                        <option value="0.5">0.5 倍</option>
+                    </select>
+                </div>
             </div>
             <!-- 搜尋欄位 -->
             <div class="flex justify-center items-center mb-2 gap-2 px-4">
                 <input id="searchInput" type="text" placeholder="輸入單字進行搜尋..." class="w-full max-w-xs p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <button id="searchBtn" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg shadow hover:bg-indigo-600 transition-colors">搜尋</button>
             </div>
-            <p id="searchResult" class="text-center text-red-500 h-6 mb-2"></p>
+            <p id="searchResult" class="text-center text-red-500 h-12 mb-2 leading-tight"></p>
 
             <div id="flashcard" class="flip-card w-full h-80 md:h-96 rounded-3xl cursor-pointer noselect">
                 <div id="flashcard-inner" class="flip-card-inner shadow-lg rounded-3xl">
@@ -164,6 +183,7 @@
                             <p id="syllables" class="text-xl text-gray-500 mt-1"></p>
                         </div>
                         <div id="sentenceAnalysis" class="flex flex-wrap justify-center items-center gap-2 mt-2 text-lg md:text-xl"></div>
+                        <button id="verbTypeBtn" class="hidden absolute top-4 left-4 bg-yellow-400 text-yellow-800 font-bold py-2 px-4 rounded-lg shadow hover:bg-yellow-500 transition-colors">AAA型</button>
                         <button id="speakBtn" class="absolute bottom-6 right-6 p-3 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                         </button>
@@ -188,17 +208,35 @@
             <div id="dictationProgress" class="text-center text-gray-500 text-lg"></div>
             <p class="text-2xl font-bold text-gray-700 mt-8">請聽發音並拼出單字：</p>
             <div class="flex flex-col items-center justify-center h-48">
-                <div class="flex justify-center items-center mb-4 space-x-2">
-                    <label class="text-gray-700 font-semibold mr-2">類別:</label>
-                    <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
-                    <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
-                    <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
-                </div>
-                <div class="mb-4">
-                    <label for="dictationSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
-                    <select id="dictationSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="1.0">正常速度</option><option value="0.7">0.7 倍</option><option value="0.5">0.5 倍</option>
-                    </select>
+                 <!-- 修改後的類別選擇 -->
+                <div class="flex justify-center items-center mb-4 space-x-4">
+                    <div class="flex items-center">
+                       <label for="categorySelectDictation" class="text-gray-700 font-semibold mr-2">類別:</label>
+                       <select id="categorySelectDictation" class="category-select p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                           <optgroup label="課本單">
+                                <option value="課本單U1">課本單U1</option>
+                                <option value="課本單U2">課本單U2</option>
+                                <option value="課本單U3">課本單U3</option>
+                                <option value="課本單U4">課本單U4</option>
+                                <option value="課本單U5">課本單U5</option>
+                                <option value="課本單U6">課本單U6</option>
+                           </optgroup>
+                           <optgroup label="2K單">
+                                <option value="2K單P1">2K單P1</option>
+                                <option value="2K單P2">2K單P2</option>
+                                <option value="2K單P3">2K單P3</option>
+                                <option value="2K單P4">2K單P4</option>
+                                <option value="2K單P5">2K單P5</option>
+                                <option value="2K單P6">2K單P6</option>
+                           </optgroup>
+                       </select>
+                   </div>
+                   <div class="flex items-center">
+                       <label for="dictationSpeechRateSelect" class="text-gray-700 font-semibold mr-2">發音速度:</label>
+                       <select id="dictationSpeechRateSelect" class="p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                           <option value="1.0">正常速度</option><option value="0.7">0.7 倍</option><option value="0.5">0.5 倍</option>
+                       </select>
+                   </div>
                 </div>
                 <button id="dictationSpeakBtn" class="p-8 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
@@ -207,24 +245,40 @@
             <div class="mt-8 px-4">
                 <input id="answerInput" type="text" placeholder="在此輸入答案" class="w-full max-w-lg p-4 text-center text-xl rounded-xl border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
             </div>
-            <div id="resultMessage" class="mt-4 text-2xl font-bold"></div>
+            <div id="resultMessage" class="mt-4 text-2xl font-bold min-h-[6rem]"></div>
             <div class="flex justify-center items-center gap-4 mt-6">
                 <button id="checkBtn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-600 transition-colors">檢查</button>
-                <button id="nextDictationBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">下一題</button>
+                <button id="nextDictationBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">跳過</button>
             </div>
         </div>
         
         <!-- 配對遊戲頁面 -->
         <div id="matchingGamePage" class="space-y-6 hidden text-center">
-            <div class="flex justify-center items-center mb-4 space-x-2">
-                <label class="text-gray-700 font-semibold mr-2">類別:</label>
-                <button data-category="P3" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P3</button>
-                <button data-category="P4" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P4</button>
-                <button data-category="P5" class="category-btn font-bold py-2 px-4 rounded-lg shadow transition-transform transform">P5</button>
+            <!-- 修改後的類別選擇 -->
+            <div class="flex justify-center items-center mb-4">
+                <label for="categorySelectMatching" class="text-gray-700 font-semibold mr-2">類別:</label>
+                <select id="categorySelectMatching" class="category-select p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <optgroup label="課本單">
+                        <option value="課本單U1">課本單U1</option>
+                        <option value="課本單U2">課本單U2</option>
+                        <option value="課本單U3">課本單U3</option>
+                        <option value="課本單U4">課本單U4</option>
+                        <option value="課本單U5">課本單U5</option>
+                        <option value="課本單U6">課本單U6</option>
+                    </optgroup>
+                    <optgroup label="2K單">
+                        <option value="2K單P1">2K單P1</option>
+                        <option value="2K單P2">2K單P2</option>
+                        <option value="2K單P3">2K單P3</option>
+                        <option value="2K單P4">2K單P4</option>
+                        <option value="2K單P5">2K單P5</option>
+                        <option value="2K單P6">2K單P6</option>
+                    </optgroup>
+                </select>
             </div>
             <div class="flex justify-between items-center px-2">
                 <div id="game-timer" class="text-2xl font-bold text-indigo-600">時間: 0s</div>
-                <div id="game-pairs-matched" class="text-xl font-semibold text-gray-600">已配對: 0 / 8</div>
+                <div id="game-pairs-matched" class="text-xl font-semibold text-gray-600">已配對: 0 / 9</div>
             </div>
             <div id="game-board" class="game-grid p-2"></div>
             <div id="game-completion-message" class="hidden flex-col items-center justify-center p-6 bg-green-100 border-2 border-green-400 rounded-lg">
@@ -233,11 +287,138 @@
             </div>
             <button id="new-game-btn" class="bg-green-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-green-600 transition-colors">下一局</button>
         </div>
+
+        <!-- 動詞三態頁面 -->
+        <div id="verbFormsPage" class="space-y-6 hidden">
+            <div id="verbProgress" class="text-center text-gray-500 text-lg">1 / 100</div>
+            
+            <div id="verbCard" class="w-full h-auto min-h-[28rem] rounded-3xl shadow-lg p-6 flex flex-col justify-center items-center text-center relative noselect transition-colors duration-500">
+                <div id="verbTypeLabel" class="absolute top-4 left-6 bg-white/70 text-gray-700 font-bold py-1 px-3 rounded-full shadow"></div>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-gray-500">原型 (Infinitive)</p>
+                        <p id="verbBase" class="text-4xl md:text-5xl font-bold text-gray-800"></p>
+                        <p id="verbChinese" class="text-2xl md:text-3xl text-blue-700 font-semibold mt-1"></p>
+                        <p id="verbBasePhonetic" class="text-xl text-gray-600 mt-1 phonetics-font"></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">過去式 (Past Simple)</p>
+                        <p id="verbPast" class="text-4xl md:text-5xl font-bold text-gray-800"></p>
+                        <p id="verbPastPhonetic" class="text-xl text-gray-600 mt-1 phonetics-font"></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">過去分詞 (Past Participle)</p>
+                        <p id="verbParticiple" class="text-4xl md:text-5xl font-bold text-gray-800"></p>
+                        <p id="verbParticiplePhonetic" class="text-xl text-gray-600 mt-1 phonetics-font"></p>
+                    </div>
+                </div>
+                <button id="verbSpeakBtn" class="absolute bottom-6 right-6 p-3 rounded-full bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-green-400 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                </button>
+            </div>
+        
+            <div class="flex flex-wrap justify-center items-center gap-4">
+                <button id="verbPrevBtn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg shadow hover:bg-gray-300 transition-colors">上一個</button>
+                <button id="verbNextBtn" class="bg-teal-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-teal-600 transition-colors">下一個</button>
+                <button id="verbContinuousBtn" class="bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-cyan-600 transition-colors">連續發音</button>
+                <button id="verbReturnBtn" class="hidden bg-orange-500 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-orange-600 transition-colors">返回</button>
+            </div>
+        </div>
     </div>
+
+    <!-- 補充資料 Modal -->
+    <div id="supplementModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold mb-4">補充資料</h3>
+            <p class="mb-4">為「<span id="supplementWord" class="font-semibold text-indigo-600"></span>」尋找更多資訊：</p>
+            <div class="space-y-3">
+                <a id="supplementLink1" href="#" target="_blank" class="block w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">翰林國中</a>
+                <a id="supplementLink2" href="#" target="_blank" class="block w-full bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition-colors">翰林高中</a>
+                <a id="supplementLink3" href="#" target="_blank" class="block w-full bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">劍橋詞典</a>
+            </div>
+            <button id="closeSupplementModal" class="mt-6 text-gray-500 hover:text-gray-800">關閉</button>
+        </div>
+    </div>
+
 
     <script>
         const wordCategories = {
-            'P3': [
+            '課本單U1': [
+                { english: 'handsome', partOfSpeech: 'adj.', phonetics: "['hænsəm]", sentence: 'Your father is handsome.', chinese: '英俊的', chineseSentence: '你的父親很英俊。', sentenceAnalysis: [{ text: 'Your father', type: 'S' }, { text: 'is', type: 'V' }, { text: 'handsome', type: 'C' }] },
+                { english: 'new', partOfSpeech: 'adj.', phonetics: '[nju]', sentence: 'Is this your new school bag?', chinese: '新的', chineseSentence: '這是你的新書包嗎？', sentenceAnalysis: [{ text: 'this', type: 'S' }, { text: 'Is', type: 'V' }, { text: 'your new school bag', type: 'C' }] },
+                { english: 'classmate', partOfSpeech: 'n.', phonetics: "['klɑs͵met]", sentence: "She's my classmate.", chinese: '同學', chineseSentence: '她是我的同學。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: "'s", type: 'V' }, { text: 'my classmate', type: 'C' }] },
+                { english: 'young', partOfSpeech: 'adj.', phonetics: '[jʌŋ]', sentence: "He's young.", chinese: '年輕的', chineseSentence: '他很年輕。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: "'s", type: 'V' }, { text: 'young', type: 'C' }] },
+                { english: 'woman', partOfSpeech: 'n.', phonetics: "['wʊmən]", sentence: "Who's that beautiful tall woman?", chinese: '女人', chineseSentence: '那個美麗高挑的女人是誰？', sentenceAnalysis: [{ text: 'that beautiful tall woman', type: 'S' }, { text: "'s", type: 'V' }, { text: 'Who', type: 'C' }] },
+                { english: 'very', partOfSpeech: 'adv.', phonetics: "['vɛrɪ]", sentence: 'This tree is very tall.', chinese: '非常', chineseSentence: '這棵樹非常高。', sentenceAnalysis: [{ text: 'This tree', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very tall', type: 'C' }] },
+                { english: 'beautiful', partOfSpeech: 'adj.', phonetics: "['bjutəfəl]", sentence: 'Your school is big and beautiful.', chinese: '美麗的', chineseSentence: '你的學校又大又美麗。', sentenceAnalysis: [{ text: 'Your school', type: 'S' }, { text: 'is', type: 'V' }, { text: 'big and beautiful', type: 'C' }] },
+                { english: 'too', partOfSpeech: 'adv.', phonetics: '[tu]', sentence: 'My dad is a teacher, too.', chinese: '也', chineseSentence: '我爸爸也是一位老師。', sentenceAnalysis: [{ text: 'My dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a teacher', type: 'C' }, { text: 'too', type: 'A' }] },
+                { english: 'nice to meet you', partOfSpeech: 'phr.', phonetics: '', sentence: 'Nice to meet you, Mr. Brown.', chinese: '很高興認識你', chineseSentence: '很高興認識你，布朗先生。', sentenceAnalysis: [{ text: '(It is)', type: 'S/V' }, { text: 'nice to meet you', type: 'C' }] },
+                { english: 'cousin', partOfSpeech: 'n.', phonetics: "['kʌzn]", sentence: 'Sharon is my cousin, not my sister.', chinese: '表(堂)兄弟姊妹', chineseSentence: '雪倫是我的表姊，不是我的姊姊。', sentenceAnalysis: [{ text: 'Sharon', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my cousin, not my sister', type: 'C' }] },
+                { english: 'really', partOfSpeech: 'adv.', phonetics: "['rɪəlɪ]", sentence: 'Oh, really? I am, too.', chinese: '真地', chineseSentence: '哦，真的嗎？我也是。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'am, too', type: 'V' }] },
+                { english: 'year(s) old', partOfSpeech: 'phr.', phonetics: "[jɪr(z) old]", sentence: 'Her son is 17 years old.', chinese: '...歲', chineseSentence: '她的兒子17歲。', sentenceAnalysis: [{ text: 'Her son', type: 'S' }, { text: 'is', type: 'V' }, { text: '17 years old', type: 'C' }] },
+                { english: 'I see', partOfSpeech: 'phr.', phonetics: '', sentence: 'I see.', chinese: '我了解了', chineseSentence: '我了解了。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'see', type: 'V' }] },
+                { english: 'singer', partOfSpeech: 'n.', phonetics: "['sɪŋɚ]", sentence: "He's a singer.", chinese: '歌手', chineseSentence: '他是一位歌手。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: "'s", type: 'V' }, { text: 'a singer', type: 'C' }] },
+                { english: 'office worker', partOfSpeech: 'n.', phonetics: "['ɔfɪs ͵wɝkɚ]", sentence: 'I am an office worker, and my wife is, too.', chinese: '上班族', chineseSentence: '我是一位上班族，我太太也是。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'am', type: 'V' }, { text: 'an office worker', type: 'C' }] },
+                { english: 'housewife', partOfSpeech: 'n.', phonetics: "['haʊs͵waɪf]", sentence: 'My grandmother is a housewife.', chinese: '家庭主婦', chineseSentence: '我的祖母是位家庭主婦。', sentenceAnalysis: [{ text: 'My grandmother', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a housewife', type: 'C' }] },
+                { english: 'police officer', partOfSpeech: 'n.', phonetics: "[pə'lis ͵ɔfəsɚ]", sentence: 'He is a police officer.', chinese: '警察', chineseSentence: '他是一位警察。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a police officer', type: 'C' }] },
+                { english: 'writer', partOfSpeech: 'n.', phonetics: "['raɪtɚ]", sentence: 'Are you a writer?', chinese: '作家', chineseSentence: '你是作家嗎？', sentenceAnalysis: [{ text: 'you', type: 'S' }, { text: 'Are', type: 'V' }, { text: 'a writer', type: 'C' }] },
+                { english: 'uncle', partOfSpeech: 'n.', phonetics: "['ʌŋk!]", sentence: 'My uncle is a good cook.', chinese: '叔叔；伯伯', chineseSentence: '我叔叔是個好廚師。', sentenceAnalysis: [{ text: 'My uncle', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a good cook', type: 'C' }] },
+                { english: 'aunt', partOfSpeech: 'n.', phonetics: '[ænt]', sentence: "Aunt Shelly is my mother's good friend.", chinese: '阿姨；姑姑', chineseSentence: '雪莉阿姨是我媽媽的好朋友。', sentenceAnalysis: [{ text: 'Aunt Shelly', type: 'S' }, { text: 'is', type: 'V' }, { text: "my mother's good friend", type: 'C' }] },
+                { english: 'wife', partOfSpeech: 'n.', phonetics: '[waɪf]', sentence: "Isn't his wife a doctor?", chinese: '妻子', chineseSentence: '他的妻子不是醫生嗎？', sentenceAnalysis: [{ text: 'his wife', type: 'S' }, { text: "Is not", type: 'V' }, { text: 'a doctor', type: 'C' }] },
+                { english: 'daughter', partOfSpeech: 'n.', phonetics: "['dɔtɚ]", sentence: "Julia is Mr. and Mrs. Wilson's daughter.", chinese: '女兒', chineseSentence: '茱莉亞是威爾森夫婦的女兒。', sentenceAnalysis: [{ text: 'Julia', type: 'S' }, { text: 'is', type: 'V' }, { text: "Mr. and Mrs. Wilson's daughter", type: 'C' }] },
+                { english: 'husband', partOfSpeech: 'n.', phonetics: "['hʌzbənd]", sentence: 'Her husband is a nurse.', chinese: '丈夫', chineseSentence: '她的丈夫是位護士。', sentenceAnalysis: [{ text: 'Her husband', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nurse', type: 'C' }] },
+                { english: 'son', partOfSpeech: 'n.', phonetics: '[sʌn]', sentence: 'Mrs. Fang is a mother of three sons.', chinese: '兒子', chineseSentence: '方太太是三個兒子的媽媽。', sentenceAnalysis: [{ text: 'Mrs. Fang', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a mother of three sons', type: 'C' }] },
+                { english: 'dear', partOfSpeech: 'adj.', phonetics: '[dɪr]', sentence: 'This is a picture of my dear students.', chinese: '親愛的', chineseSentence: '這是我親愛學生的照片。', sentenceAnalysis: [{ text: 'This', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a picture of my dear students', type: 'C' }] },
+                { english: 'family', partOfSpeech: 'n.', phonetics: "['fæməlɪ]", sentence: "How's your family?", chinese: '家庭；家人', chineseSentence: '你的家人好嗎？', sentenceAnalysis: [{ text: 'your family', type: 'S' }, { text: "'s (is)", type: 'V' }, { text: 'How', type: 'C' }] },
+                { english: 'elementary school', partOfSpeech: 'n.', phonetics: "[,ɛlə'mɛntərɪ skul]", sentence: 'She is an elementary school student.', chinese: '國小', chineseSentence: '她是個國小生。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'an elementary school student', type: 'C' }] },
+                { english: 'junior high school', partOfSpeech: 'n.', phonetics: "['dʒunjɚ 'haɪ skul]", sentence: 'Their mom is a junior high school teacher.', chinese: '國中', chineseSentence: '他們的媽媽是位國中老師。', sentenceAnalysis: [{ text: 'Their mom', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a junior high school teacher', type: 'C' }] },
+                { english: 'baby', partOfSpeech: 'n.', phonetics: "['bebɪ]", sentence: "The baby's father is Mr. Martin.", chinese: '嬰兒；寶貝', chineseSentence: '這個嬰兒的父親是馬丁先生。', sentenceAnalysis: [{ text: 'The baby\'s father', type: 'S' }, { text: 'is', type: 'V' }, { text: 'Mr. Martin', type: 'C' }] }
+            ],
+            '課本單U2': [
+                { english: 'house', partOfSpeech: 'n.', phonetics: '[haʊs]', sentence: 'Jimmy is not in the house.', chinese: '房子', chineseSentence: '吉米不在房子裡。', sentenceAnalysis: [{ text: 'Jimmy', type: 'S' }, { text: 'is not', type: 'V' }, { text: 'in the house', type: 'A' }] },
+                { english: 'parents', partOfSpeech: 'n.', phonetics: "['pɛrənts]", sentence: 'Her parents are very nice.', chinese: '父母親', chineseSentence: '她的父母很友善。', sentenceAnalysis: [{ text: 'Her parents', type: 'S' }, { text: 'are', type: 'V' }, { text: 'very nice', type: 'C' }] },
+                { english: 'living room', partOfSpeech: 'n.', phonetics: "['lɪvɪŋ rum]", sentence: 'The new sofa is in the living room.', chinese: '客廳', chineseSentence: '新沙發在客廳裡。', sentenceAnalysis: [{ text: 'The new sofa', type: 'S' }, { text: 'is', type: 'V' }, { text: 'in the living room', type: 'A' }] },
+                { english: 'wall', partOfSpeech: 'n.', phonetics: '[wɔl]', sentence: 'The walls of this room are thin.', chinese: '牆壁', chineseSentence: '這個房間的牆壁很薄。', sentenceAnalysis: [{ text: 'The walls of this room', type: 'S' }, { text: 'are', type: 'V' }, { text: 'thin', type: 'C' }] },
+                { english: 'purple', partOfSpeech: 'adj.; n.', phonetics: "['pɝp!]", sentence: "The singer's hair is purple.", chinese: '紫色的；紫色', chineseSentence: '這位歌手的頭髮是紫色的。', sentenceAnalysis: [{ text: "The singer's hair", type: 'S' }, { text: 'is', type: 'V' }, { text: 'purple', type: 'C' }] },
+                { english: 'favorite', partOfSpeech: 'adj.; n.', phonetics: "['fevərɪt]", sentence: 'This is my favorite park.', chinese: '最喜愛的(事物)', chineseSentence: '這是我最喜歡的公園。', sentenceAnalysis: [{ text: 'This', type: 'S' }, { text: 'is', type: 'V' }, { text: 'my favorite park', type: 'C' }] },
+                { english: 'color', partOfSpeech: 'n.', phonetics: "['kʌlɚ]", sentence: 'My favorite color is blue.', chinese: '顏色', chineseSentence: '我最喜歡的顏色是藍色。', sentenceAnalysis: [{ text: 'My favorite color', type: 'S' }, { text: 'is', type: 'V' }, { text: 'blue', type: 'C' }] },
+                { english: 'kitchen', partOfSpeech: 'n.', phonetics: "['kɪtʃən]", sentence: 'Is your aunt in the kitchen?', chinese: '廚房', chineseSentence: '你的阿姨在廚房嗎？', sentenceAnalysis: [{ text: 'your aunt', type: 'S' }, { text: 'Is', type: 'V' }, { text: 'in the kitchen', type: 'A' }] },
+                { english: 'dining room', partOfSpeech: 'n.', phonetics: "['daɪnɪŋ rum]", sentence: "Aren't the eggs on the dining room table?", chinese: '飯廳', chineseSentence: '雞蛋不是在飯廳的餐桌上嗎？', sentenceAnalysis: [{ text: 'the eggs', type: 'S' }, { text: 'Are not', type: 'V' }, { text: 'on the dining room table', type: 'A' }] },
+                { english: 'but', partOfSpeech: 'conj.', phonetics: '[bət]', sentence: 'My room is big, but my bed is not.', chinese: '但是', chineseSentence: '我的房間很大，但我的床不是。', sentenceAnalysis: [{ text: 'My room', type: 'S' }, { text: 'is', type: 'V' }, { text: 'big', type: 'C' }, { text: 'but my bed is not', type: 'Clause' }] },
+                { english: 'gray', partOfSpeech: 'adj.; n.', phonetics: '[gre]', sentence: "My dad's car is gray.", chinese: '灰色的；灰色', chineseSentence: '我爸爸的車是灰色的。', sentenceAnalysis: [{ text: "My dad's car", type: 'S' }, { text: 'is', type: 'V' }, { text: 'gray', type: 'C' }] },
+                { english: 'brown', partOfSpeech: 'adj.; n.', phonetics: '[braʊn]', sentence: "Jerry's dog is brown.", chinese: '褐色的；褐色', chineseSentence: '傑瑞的狗是褐色的。', sentenceAnalysis: [{ text: "Jerry's dog", type: 'S' }, { text: 'is', type: 'V' }, { text: 'brown', type: 'C' }] },
+                { english: 'cookie', partOfSpeech: 'n.', phonetics: "['kʊkɪ]", sentence: 'They are cookies for my mom.', chinese: '餅乾', chineseSentence: '它們是給我媽媽的餅乾。', sentenceAnalysis: [{ text: 'They', type: 'S' }, { text: 'are', type: 'V' }, { text: 'cookies', type: 'C' }, { text: 'for my mom', type: 'A' }] },
+                { english: 'mice', partOfSpeech: 'n.', phonetics: '[maɪs]', sentence: 'Two white mice are in the box.', chinese: '老鼠(mouse的複數)', chineseSentence: '兩隻白老鼠在盒子裡。', sentenceAnalysis: [{ text: 'Two white mice', type: 'S' }, { text: 'are', type: 'V' }, { text: 'in the box', type: 'A' }] },
+                { english: 'maybe', partOfSpeech: 'adv.', phonetics: "['mebɪ]", sentence: "Maybe he's in his dog house.", chinese: '可能', chineseSentence: '也許他在他的狗屋裡。', sentenceAnalysis: [{ text: 'Maybe', type: 'A' }, { text: 'he', type: 'S' }, { text: "'s", type: 'V' }, { text: 'in his dog house', type: 'A' }] },
+                { english: 'sofa', partOfSpeech: 'n.', phonetics: "['sofə]", sentence: 'The old sofa is in my grandfather’s bedroom.', chinese: '沙發', chineseSentence: '舊沙發在我爺爺的臥室裡。', sentenceAnalysis: [{ text: 'The old sofa', type: 'S' }, { text: 'is', type: 'V' }, { text: 'in my grandfather’s bedroom', type: 'A' }] },
+                { english: 'hungry', partOfSpeech: 'adj.', phonetics: "['hʌŋgrɪ]", sentence: "I'm hungry.", chinese: '飢餓的', chineseSentence: '我餓了。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: "'m", type: 'V' }, { text: 'hungry', type: 'C' }] },
+                { english: 'notebook', partOfSpeech: 'n.', phonetics: "['not͵bʊk]", sentence: 'My notebooks are in my schoolbag.', chinese: '筆記本', chineseSentence: '我的筆記本在我的書包裡。', sentenceAnalysis: [{ text: 'My notebooks', type: 'S' }, { text: 'are', type: 'V' }, { text: 'in my schoolbag', type: 'A' }] },
+                { english: 'marker', partOfSpeech: 'n.', phonetics: "['mɑrkɚ]", sentence: 'Where is my pink marker?', chinese: '彩色筆', chineseSentence: '我的粉紅色馬克筆在哪裡？', sentenceAnalysis: [{ text: 'my pink marker', type: 'S' }, { text: 'is', type: 'V' }, { text: 'Where', type: 'A' }] },
+                { english: 'brush', partOfSpeech: 'n.', phonetics: '[brʌʃ]', sentence: 'Your brush is under your bed.', chinese: '毛筆；畫筆', chineseSentence: '你的畫筆在你的床底下。', sentenceAnalysis: [{ text: 'Your brush', type: 'S' }, { text: 'is', type: 'V' }, { text: 'under your bed', type: 'A' }] },
+                { english: 'gift', partOfSpeech: 'n.', phonetics: '[gɪft]', sentence: "It's a gift for you.", chinese: '禮物', chineseSentence: '這是給你的禮物。', sentenceAnalysis: [{ text: 'It', type: 'S' }, { text: "'s", type: 'V' }, { text: 'a gift', type: 'C' }, { text: 'for you', type: 'A' }] },
+                { english: 'pencil case', partOfSpeech: 'n.', phonetics: "['pɛns! kes]", sentence: 'My pencil case is on the desk.', chinese: '鉛筆盒', chineseSentence: '我的鉛筆盒在書桌上。', sentenceAnalysis: [{ text: 'My pencil case', type: 'S' }, { text: 'is', type: 'V' }, { text: 'on the desk', type: 'A' }] },
+                { english: 'bathroom', partOfSpeech: 'n.', phonetics: "['bæθ͵rum]", sentence: 'Are you in the bathroom, Mom?', chinese: '浴室；廁所', chineseSentence: '媽，妳在浴室嗎？', sentenceAnalysis: [{ text: 'you', type: 'S' }, { text: 'Are', type: 'V' }, { text: 'in the bathroom', type: 'A' }] },
+                { english: 'table', partOfSpeech: 'n.', phonetics: "['teb!]", sentence: 'Sammy, your pencil is on the table.', chinese: '桌子', chineseSentence: '薩米，你的鉛筆在桌子上。', sentenceAnalysis: [{ text: 'your pencil', type: 'S' }, { text: 'is', type: 'V' }, { text: 'on the table', type: 'A' }] },
+                { english: 'bedroom', partOfSpeech: 'n.', phonetics: "['bɛd͵rum]", sentence: 'Her bedroom is next to the living room.', chinese: '臥室', chineseSentence: '她的臥室在客廳旁邊。', sentenceAnalysis: [{ text: 'Her bedroom', type: 'S' }, { text: 'is', type: 'V' }, { text: 'next to the living room', type: 'A' }] },
+                { english: 'near', partOfSpeech: 'prep.', phonetics: '[nɪr]', sentence: "My uncle's farm is near the zoo.", chinese: '在...附近', chineseSentence: '我叔叔的農場在動物園附近。', sentenceAnalysis: [{ text: "My uncle's farm", type: 'S' }, { text: 'is', type: 'V' }, { text: 'near the zoo', type: 'A' }] },
+                { english: 'between', partOfSpeech: 'prep.', phonetics: "[bɪ'twin]", sentence: 'Who is that between your mom and dad?', chinese: '在...之間', chineseSentence: '在你爸爸和媽媽之間的那個人是誰？', sentenceAnalysis: [{ text: 'that', type: 'S' }, { text: 'is', type: 'V' }, { text: 'Who', type: 'C' }, { text: 'between your mom and dad', type: 'A' }] },
+                { english: 'behind', partOfSpeech: 'prep.', phonetics: "[bɪ'haɪnd]", sentence: "Look! Kenny's cat is behind the tree.", chinese: '在...後面', chineseSentence: '看！肯尼的貓在樹後面。', sentenceAnalysis: [{ text: "Kenny's cat", type: 'S' }, { text: 'is', type: 'V' }, { text: 'behind the tree', type: 'A' }] },
+                { english: 'in front of', partOfSpeech: 'prep.', phonetics: "[ɪn 'frʌnt əv]", sentence: 'The old tree is in front of our school.', chinese: '在...前面', chineseSentence: '那棵老樹在我們學校前面。', sentenceAnalysis: [{ text: 'The old tree', type: 'S' }, { text: 'is', type: 'V' }, { text: 'in front of our school', type: 'A' }] },
+                { english: 'special', partOfSpeech: 'adj.', phonetics: "['spɛʃəl]", sentence: "What's special about this pencil?", chinese: '特別的', chineseSentence: '這支鉛筆有什麼特別之處？', sentenceAnalysis: [{ text: 'What', type: 'S' }, { text: "'s", type: 'V' }, { text: 'special about this pencil', type: 'C' }] },
+                { english: 'inside', partOfSpeech: 'prep.', phonetics: "[ɪn'saɪd]", sentence: "What's inside the box?", chinese: '在...裡面', chineseSentence: '盒子裡有什麼？', sentenceAnalysis: [{ text: 'What', type: 'S' }, { text: "'s", type: 'V' }, { text: 'inside the box', type: 'A' }] },
+                { english: 'right', partOfSpeech: 'adv.', phonetics: '[raɪt]', sentence: 'My house is right next to a park.', chinese: '就', chineseSentence: '我家就在公園旁邊。', sentenceAnalysis: [{ text: 'My house', type: 'S' }, { text: 'is', type: 'V' }, { text: 'right next to a park', type: 'A' }] },
+                { english: 'each other', partOfSpeech: 'pron.', phonetics: "['itʃ 'ʌðɚ]", sentence: 'My classmates are nice to each other.', chinese: '彼此；互相', chineseSentence: '我的同學們對彼此都很友善。', sentenceAnalysis: [{ text: 'My classmates', type: 'S' }, { text: 'are', type: 'V' }, { text: 'nice', type: 'C' }, { text: 'to each other', type: 'A' }] },
+                { english: 'above', partOfSpeech: 'prep.; adv.', phonetics: "[ə'bʌv]", sentence: 'The clock is above the TV.', chinese: '在上方', chineseSentence: '時鐘在電視機的上方。', sentenceAnalysis: [{ text: 'The clock', type: 'S' }, { text: 'is', type: 'V' }, { text: 'above the TV', type: 'A' }] },
+                { english: 'enough', partOfSpeech: 'adj.; adv.; pron.', phonetics: "[ə'nʌf]", sentence: "It's enough for a family of three.", chinese: '足夠(的)', chineseSentence: '這對一個三口之家來說已經足夠了。', sentenceAnalysis: [{ text: 'It', type: 'S' }, { text: "'s", type: 'V' }, { text: 'enough', type: 'C' }, { text: 'for a family of three', type: 'A' }] },
+                { english: 'person', partOfSpeech: 'n.', phonetics: "['pɝsn]", sentence: 'Jeremy is a nice person.', chinese: '人', chineseSentence: '傑瑞米是個好人。', sentenceAnalysis: [{ text: 'Jeremy', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice person', type: 'C' }] }
+            ],
+            '課本單U3': [],
+            '課本單U4': [],
+            '課本單U5': [],
+            '課本單U6': [],
+            '2K單P1': [],
+            '2K單P2': [],
+            '2K單P3': [
                 { english: 'beautiful', syllables: 'beau-ti-ful', partOfSpeech: 'adj.', phonetics: "[ˈbjuːtəfl]", sentence: 'I need a beautiful dress for the party.', chinese: '美觀的, 漂亮的', chineseSentence: '為了這場派對，我需要一件美麗的洋裝。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'need', type: 'V' }, { text: 'a beautiful dress', type: 'O' }, { text: 'for the party', type: 'A' }] },
                 { english: 'cute', partOfSpeech: 'adj.', phonetics: "[kjuːt]", sentence: 'He bought a cute sweater for Daisy.', chinese: '可愛的', chineseSentence: '他買了一件可愛的毛衣給黛西。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'bought', type: 'V' }, { text: 'a cute sweater', type: 'O' }, { text: 'for Daisy', type: 'A' }] },
                 { english: 'handsome', partOfSpeech: 'adj.', phonetics: "[ˈhænsəm]", sentence: 'Handsome is as handsome does.', chinese: '英俊的, 好看的', chineseSentence: '慷慨仁慈始為美。', sentenceAnalysis: [{ text: 'Handsome', type: 'S' }, { text: 'is', type: 'V' }, { text: 'as handsome does', type: 'A' }] },
@@ -253,7 +434,7 @@
                 { english: 'under-weight', syllables: 'un-der-weight', partOfSpeech: 'adj.', phonetics: "[ˌʌndərˈweɪt]", sentence: 'Dad is under-weight because he eats too little.', chinese: '過輕的', chineseSentence: '爸爸體重過輕是因為他吃的太少。', sentenceAnalysis: [{ text: 'Dad', type: 'S' }, { text: 'is', type: 'V' }, { text: 'under-weight', type: 'C' }, { text: 'because he eats too little', type: 'A' }] },
                 { english: 'nice-looking', syllables: 'nice-look-ing', partOfSpeech: 'adj.', phonetics: "[ˌnaɪsˈlʊkɪŋ]", sentence: 'She is a nice-looking girl.', chinese: '好看的', chineseSentence: '她是個好看的女孩。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a nice-looking girl', type: 'C' }] }
             ],
-            'P4': [
+            '2K單P4': [
                 { english: 'old', partOfSpeech: 'adj.', phonetics: "[oʊld]", sentence: 'The dog is too old to run.', chinese: '年老的', chineseSentence: '這隻狗老得跑不動了。', sentenceAnalysis: [{ text: 'The dog', type: 'S' }, { text: 'is', type: 'V' }, { text: 'too old to run', type: 'C' }] },
                 { english: 'young', partOfSpeech: 'adj.', phonetics: "[jʌŋ]", sentence: 'These young people are going to the party.', chinese: '年輕的', chineseSentence: '這些年輕人正要去參加宴會。', sentenceAnalysis: [{ text: 'These young people', type: 'S' }, { text: 'are going to', type: 'V' }, { text: 'the party', type: 'O' }] },
                 { english: 'short', partOfSpeech: 'adj.', phonetics: "[ʃɔːrt]", sentence: 'He is shorter than his sister.', chinese: '矮的', chineseSentence: '他比他姊姊矮。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'shorter than his sister', type: 'C' }] },
@@ -271,7 +452,7 @@
                 { english: 'boring', partOfSpeech: 'adj.', phonetics: "[ˈbɔːrɪŋ]", sentence: 'It is a boring class.', chinese: '乏味的', chineseSentence: '這堂課很乏味。', sentenceAnalysis: [{ text: 'It', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a boring class', type: 'C' }] },
                 { english: 'busy', partOfSpeech: 'adj.', phonetics: "[ˈbɪzi]", sentence: 'He was too busy to drink.', chinese: '忙碌的', chineseSentence: '他忙得沒空喝水。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'was', type: 'V' }, { text: 'too busy to drink', type: 'C' }] }
             ],
-            'P5': [
+            '2K單P5': [
                 { english: 'brave', partOfSpeech: 'adj.', phonetics: "[brev]", sentence: 'He is not brave enough to stop the fight.', chinese: '勇敢的', chineseSentence: '他還不夠勇敢去阻止那場打鬥。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is not', type: 'V' }, { text: 'brave enough to stop the fight', type: 'C' }] },
                 { english: 'childish', partOfSpeech: 'adj.', phonetics: "[ˈtʃaɪldɪʃ]", sentence: "Don't be so childish.", chinese: '幼稚的', chineseSentence: '不要這麼幼稚好嗎。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: "Don't be", type: 'V' }, { text: 'so childish', type: 'C' }] },
                 { english: 'childlike', partOfSpeech: 'adj.', phonetics: "[ˈtʃaɪldlaɪk]", sentence: 'She keeps a childlike mind no matter how old she is.', chinese: '孩子般的', chineseSentence: '她不論幾何年紀都仍然保有一顆赤子之心。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'keeps', type: 'V' }, { text: 'a childlike mind', type: 'O' }, { text: 'no matter how old she is', type: 'A' }] },
@@ -281,18 +462,128 @@
                 { english: 'wise', partOfSpeech: 'adj.', phonetics: "[waɪz]", sentence: 'Are you a wise guy?', chinese: '明智的', chineseSentence: '你是個聰明人嗎?', sentenceAnalysis: [{ text: 'Are', type: 'V' }, { text: 'you', type: 'S' }, { text: 'a wise guy', type: 'C' }] },
                 { english: 'careful', partOfSpeech: 'adj.', phonetics: "[ˈkerfəl]", sentence: 'Be careful with this machine.', chinese: '仔細的', chineseSentence: '小心處理這台機器。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: 'Be', type: 'V' }, { text: 'careful with this machine', type: 'C' }] },
                 { english: 'careless', partOfSpeech: 'adj.', phonetics: "[ˈkerləs]", sentence: 'He is careless about everything.', chinese: '粗心的', chineseSentence: '他對任何事都態度草率。', sentenceAnalysis: [{ text: 'He', type: 'S' }, { text: 'is', type: 'V' }, { text: 'careless about everything', type: 'C' }] },
-                { english: 'confident', syllables: 'con-fi-dent', partOfSpeech: 'adj.', phonetics: "[ˈkɑːnfədənt]", sentence: 'Sam was confident about what he was good at.', chinese: '有自信的', chineseSentence: '山姆對於自己拿手的東西都很有信心。', sentenceAnalysis: [{ text: 'Sam', type: 'S' }, { text: 'was', type: 'V' }, { text: 'confident about what he was good at', type: 'C' }] },
+                { english: 'confident', syllables: 'con-fi-dent', partOfSpeech: 'adj.', phonetics: "[ˈɑːnfədənt]", sentence: 'Sam was confident about what he was good at.', chinese: '有自信的', chineseSentence: '山姆對於自己拿手的東西都很有信心。', sentenceAnalysis: [{ text: 'Sam', type: 'S' }, { text: 'was', type: 'V' }, { text: 'confident about what he was good at', type: 'C' }] },
                 { english: 'considerate', syllables: 'con-sid-er-ate', partOfSpeech: 'adj.', phonetics: "[kənˈsɪdərət]", sentence: 'The nurse is very considerate to us.', chinese: '體貼的', chineseSentence: '護士相當照顧我們。', sentenceAnalysis: [{ text: 'The nurse', type: 'S' }, { text: 'is', type: 'V' }, { text: 'very considerate to us', type: 'C' }] },
                 { english: 'cool', partOfSpeech: 'adj.', phonetics: "[kuːl]", sentence: 'She was cool toward her mother today.', chinese: '冷淡的', chineseSentence: '她今天對媽媽的態度非常冷淡。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'was', type: 'V' }, { text: 'cool', type: 'C' }, { text: 'toward her mother today', type: 'A' }] },
                 { english: 'crazy', partOfSpeech: 'adj.', phonetics: "[ˈkreɪzi]", sentence: 'People are crazy about Jeremy Lin recently.', chinese: '瘋狂的', chineseSentence: '人們最近對林書豪瘋狂。', sentenceAnalysis: [{ text: 'People', type: 'S' }, { text: 'are', type: 'V' }, { text: 'crazy', type: 'C' }, { text: 'about Jeremy Lin recently', type: 'A' }] },
                 { english: 'mad', partOfSpeech: 'adj.', phonetics: "[mæd]", sentence: 'She was mad at me for standing her up.', chinese: '發瘋的', chineseSentence: '她因為我放她鴿子而生我的氣。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'was', type: 'V' }, { text: 'mad at me', type: 'C' }, { text: 'for standing her up', type: 'A' }] },
                 { english: 'cruel', partOfSpeech: 'adj.', phonetics: "[ˈcruːəl]", sentence: "Please don't say cruel words.", chinese: '殘酷的', chineseSentence: '請不要說尖刻的話語。', sentenceAnalysis: [{ text: 'You', type: 'S (implied)' }, { text: "don't say", type: 'V' }, { text: 'cruel words', type: 'O' }] },
                 { english: 'curious', syllables: 'cu-ri-ous', partOfSpeech: 'adj.', phonetics: "[ˈkjʊriəs]", sentence: 'Kids are curious about everything.', chinese: '好奇的', chineseSentence: '小孩子對於任何事情都感到好奇。', sentenceAnalysis: [{ text: 'Kids', type: 'S' }, { text: 'are', type: 'V' }, { text: 'curious about everything', type: 'C' }] },
-                { english: 'diligent', syllables: 'dil-i-gent', partOfSpeech: 'adj.', phonetics: "[ˈdɪlɪdʒənt]", sentence: 'She is a diligent student.', chinese: '勤勉的', chineseSentence: '她是一個用功的學生。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a diligent student', type: 'C' }] }
-            ]
+                { english: 'diligent', syllables: 'dil-i-gent', partOfSpeech: 'adj.', phonetics: "[ˈdɪlɪdʒənt]", sentence: 'She is a diligent student.', chinese: '勤勉的', chineseSentence: '她是一個用功的學生。', sentenceAnalysis: [{ text: 'She', type: 'S' }, { text: 'is', type: 'V' }, { text: 'a diligent student', type: 'C' }] },
+                { english: 'read', partOfSpeech: 'v.', phonetics: "[riːd]", sentence: 'I read the book yesterday.', chinese: '閱讀', chineseSentence: '我昨天讀了這本書。', sentenceAnalysis: [{ text: 'I', type: 'S' }, { text: 'read', type: 'V' }, { text: 'the book', type: 'O' }, { text: 'yesterday', type: 'A' }] }
+            ],
+            '2K單P6': []
         };
 
-        let currentCategory = 'P3';
+        // --- 動詞三態資料 ---
+        const verbForms = [
+            { base: 'cost', past: 'cost', participle: 'cost', phonetic: { base: '[kɔst]', past: '[kɔst]', participle: '[kɔst]' }, type: 'AAA', chinese: '花費' },
+            { base: 'cut', past: 'cut', participle: 'cut', phonetic: { base: '[kʌt]', past: '[kʌt]', participle: '[kʌt]' }, type: 'AAA', chinese: '切割' },
+            { base: 'fit', past: 'fit', participle: 'fit', phonetic: { base: '[fɪt]', past: '[fɪt]', participle: '[fɪt]' }, type: 'AAA', chinese: '合適' },
+            { base: 'hit', past: 'hit', participle: 'hit', phonetic: { base: '[hɪt]', past: '[hɪt]', participle: '[hɪt]' }, type: 'AAA', chinese: '打擊' },
+            { base: 'hurt', past: 'hurt', participle: 'hurt', phonetic: { base: '[hɜːrt]', past: '[hɜːrt]', participle: '[hɜːrt]' }, type: 'AAA', chinese: '傷害' },
+            { base: 'let', past: 'let', participle: 'let', phonetic: { base: '[let]', past: '[let]', participle: '[let]' }, type: 'AAA', chinese: '讓' },
+            { base: 'put', past: 'put', participle: 'put', phonetic: { base: '[pʊt]', past: '[pʊt]', participle: '[pʊt]' }, type: 'AAA', chinese: '放置' },
+            { base: 'quit', past: 'quit', participle: 'quit', phonetic: { base: '[kwɪt]', past: '[kwɪt]', participle: '[kwɪt]' }, type: 'AAA', chinese: '放棄' },
+            { base: 'read', past: 'read', participle: 'read', phonetic: { base: '[riːd]', past: '[red]', participle: '[red]' }, type: 'AAA', specialPronunciation: true, pronunciationOverride: { past: 'red', participle: 'red' }, chinese: '閱讀' },
+            { base: 'set', past: 'set', participle: 'set', phonetic: { base: '[set]', past: '[set]', participle: '[set]' }, type: 'AAA', chinese: '設置' },
+            { base: 'shut', past: 'shut', participle: 'shut', phonetic: { base: '[ʃʌt]', past: '[ʃʌt]', participle: '[ʃʌt]' }, type: 'AAA', chinese: '關閉' },
+            { base: 'spread', past: 'spread', participle: 'spread', phonetic: { base: '[spred]', past: '[spred]', participle: '[spred]' }, type: 'AAA', chinese: '散播' },
+            { base: 'become', past: 'became', participle: 'become', phonetic: { base: '[bɪˈkʌm]', past: '[bɪˈkeɪm]', participle: '[bɪˈkʌm]' }, type: 'ABA', chinese: '變成' },
+            { base: 'come', past: 'came', participle: 'come', phonetic: { base: '[kʌm]', past: '[keɪm]', participle: '[kʌm]' }, type: 'ABA', chinese: '來' },
+            { base: 'run', past: 'ran', participle: 'run', phonetic: { base: '[rʌn]', past: '[ræn]', participle: '[rʌn]' }, type: 'ABA', chinese: '跑' },
+            { base: 'bend', past: 'bent', participle: 'bent', phonetic: { base: '[bend]', past: '[bent]', participle: '[bent]' }, type: 'ABB', chinese: '彎曲' },
+            { base: 'bring', past: 'brought', participle: 'brought', phonetic: { base: '[brɪŋ]', past: '[brɔːt]', participle: '[brɔːt]' }, type: 'ABB', chinese: '帶來' },
+            { base: 'build', past: 'built', participle: 'built', phonetic: { base: '[bɪld]', past: '[bɪlt]', participle: '[bɪlt]' }, type: 'ABB', chinese: '建造' },
+            { base: 'burn', past: 'burnt', participle: 'burnt', phonetic: { base: '[bɜːrn]', past: '[bɜːrnt]', participle: '[bɜːrnt]' }, type: 'ABB', chinese: '燃燒' },
+            { base: 'buy', past: 'bought', participle: 'bought', phonetic: { base: '[baɪ]', past: '[bɔːt]', participle: '[bɔːt]' }, type: 'ABB', chinese: '購買' },
+            { base: 'catch', past: 'caught', participle: 'caught', phonetic: { base: '[kætʃ]', past: '[kɔːt]', participle: '[kɔːt]' }, type: 'ABB', chinese: '抓住' },
+            { base: 'deal', past: 'dealt', participle: 'dealt', phonetic: { base: '[diːl]', past: '[delt]', participle: '[delt]' }, type: 'ABB', chinese: '處理' },
+            { base: 'dig', past: 'dug', participle: 'dug', phonetic: { base: '[dɪɡ]', past: '[dʌɡ]', participle: '[dʌɡ]' }, type: 'ABB', chinese: '挖掘' },
+            { base: 'dive', past: 'dove', participle: 'dove', phonetic: { base: '[daɪv]', past: '[doʊv]', participle: '[doʊv]' }, type: 'ABB', chinese: '跳水' },
+            { base: 'feed', past: 'fed', participle: 'fed', phonetic: { base: '[fiːd]', past: '[fed]', participle: '[fed]' }, type: 'ABB', chinese: '餵食' },
+            { base: 'feel', past: 'felt', participle: 'felt', phonetic: { base: '[fiːl]', past: '[felt]', participle: '[felt]' }, type: 'ABB', chinese: '感覺' },
+            { base: 'fight', past: 'fought', participle: 'fought', phonetic: { base: '[faɪt]', past: '[fɔːt]', participle: '[fɔːt]' }, type: 'ABB', chinese: '打架' },
+            { base: 'find', past: 'found', participle: 'found', phonetic: { base: '[faɪnd]', past: '[faʊnd]', participle: '[faʊnd]' }, type: 'ABB', chinese: '找到' },
+            { base: 'get', past: 'got', participle: 'got', phonetic: { base: '[ɡet]', past: '[ɡɑːt]', participle: '[ɡɑːt]' }, type: 'ABB', chinese: '得到' },
+            { base: 'hang', past: 'hung', participle: 'hung', phonetic: { base: '[hæŋ]', past: '[hʌŋ]', participle: '[hʌŋ]' }, type: 'ABB', chinese: '懸掛' },
+            { base: 'hang', past: 'hanged', participle: 'hanged', phonetic: { base: '[hæŋ]', past: '[hæŋd]', participle: '[hæŋd]' }, type: 'Regular', chinese: '吊死' },
+            { base: 'have', past: 'had', participle: 'had', phonetic: { base: '[hæv]', past: '[hæd]', participle: '[hæd]' }, type: 'ABB', chinese: '擁有' },
+            { base: 'hear', past: 'heard', participle: 'heard', phonetic: { base: '[hɪr]', past: '[hɜːrd]', participle: '[hɜːrd]' }, type: 'ABB', chinese: '聽到' },
+            { base: 'hold', past: 'held', participle: 'held', phonetic: { base: '[hoʊld]', past: '[held]', participle: '[held]' }, type: 'ABB', chinese: '握住' },
+            { base: 'keep', past: 'kept', participle: 'kept', phonetic: { base: '[kiːp]', past: '[kept]', participle: '[kept]' }, type: 'ABB', chinese: '保持' },
+            { base: 'lead', past: 'led', participle: 'led', phonetic: { base: '[liːd]', past: '[led]', participle: '[led]' }, type: 'ABB', chinese: '引導' },
+            { base: 'leave', past: 'left', participle: 'left', phonetic: { base: '[liːv]', past: '[left]', participle: '[left]' }, type: 'ABB', chinese: '離開' },
+            { base: 'lend', past: 'lent', participle: 'lent', phonetic: { base: '[lend]', past: '[lent]', participle: '[lent]' }, type: 'ABB', chinese: '借出' },
+            { base: 'light', past: 'lit', participle: 'lit', phonetic: { base: '[laɪt]', past: '[lɪt]', participle: '[lɪt]' }, type: 'ABB', chinese: '點燃' },
+            { base: 'lose', past: 'lost', participle: 'lost', phonetic: { base: '[luːz]', past: '[lɔːst]', participle: '[lɔːst]' }, type: 'ABB', chinese: '失去' },
+            { base: 'make', past: 'made', participle: 'made', phonetic: { base: '[meɪk]', past: '[meɪd]', participle: '[meɪd]' }, type: 'ABB', chinese: '製造' },
+            { base: 'mean', past: 'meant', participle: 'meant', phonetic: { base: '[miːn]', past: '[ment]', participle: '[ment]' }, type: 'ABB', chinese: '意指' },
+            { base: 'meet', past: 'met', participle: 'met', phonetic: { base: '[miːt]', past: '[met]', participle: '[met]' }, type: 'ABB', chinese: '遇見' },
+            { base: 'pay', past: 'paid', participle: 'paid', phonetic: { base: '[peɪ]', past: '[peɪd]', participle: '[peɪd]' }, type: 'ABB', chinese: '付款' },
+            { base: 'say', past: 'said', participle: 'said', phonetic: { base: '[seɪ]', past: '[sed]', participle: '[sed]' }, type: 'ABB', chinese: '說' },
+            { base: 'sell', past: 'sold', participle: 'sold', phonetic: { base: '[sel]', past: '[soʊld]', participle: '[soʊld]' }, type: 'ABB', chinese: '販賣' },
+            { base: 'send', past: 'sent', participle: 'sent', phonetic: { base: '[send]', past: '[sent]', participle: '[sent]' }, type: 'ABB', chinese: '寄送' },
+            { base: 'shine', past: 'shone', participle: 'shone', phonetic: { base: '[ʃaɪn]', past: '[ʃoʊn]', participle: '[ʃoʊn]' }, type: 'ABB', chinese: '照耀' },
+            { base: 'shoot', past: 'shot', participle: 'shot', phonetic: { base: '[ʃuːt]', past: '[ʃɑːt]', participle: '[ʃɑːt]' }, type: 'ABB', chinese: '射擊' },
+            { base: 'sit', past: 'sat', participle: 'sat', phonetic: { base: '[sɪt]', past: '[sæt]', participle: '[sæt]' }, type: 'ABB', chinese: '坐' },
+            { base: 'sleep', past: 'slept', participle: 'slept', phonetic: { base: '[sliːp]', past: '[slept]', participle: '[slept]' }, type: 'ABB', chinese: '睡覺' },
+            { base: 'smell', past: 'smelt', participle: 'smelt', phonetic: { base: '[smel]', past: '[smelt]', participle: '[smelt]' }, type: 'ABB', chinese: '聞' },
+            { base: 'spell', past: 'spelt', participle: 'spelt', phonetic: { base: '[spel]', past: '[spelt]', participle: '[spelt]' }, type: 'ABB', chinese: '拼字' },
+            { base: 'spend', past: 'spent', participle: 'spent', phonetic: { base: '[spend]', past: '[spent]', participle: '[spent]' }, type: 'ABB', chinese: '花費' },
+            { base: 'stand', past: 'stood', participle: 'stood', phonetic: { base: '[stænd]', past: '[stʊd]', participle: '[stʊd]' }, type: 'ABB', chinese: '站立' },
+            { base: 'stick', past: 'stuck', participle: 'stuck', phonetic: { base: '[stɪk]', past: '[stʌk]', participle: '[stʌk]' }, type: 'ABB', chinese: '黏貼' },
+            { base: 'sweep', past: 'swept', participle: 'swept', phonetic: { base: '[swiːp]', past: '[swept]', participle: '[swept]' }, type: 'ABB', chinese: '掃除' },
+            { base: 'teach', past: 'taught', participle: 'taught', phonetic: { base: '[tiːtʃ]', past: '[tɔːt]', participle: '[tɔːt]' }, type: 'ABB', chinese: '教導' },
+            { base: 'tell', past: 'told', participle: 'told', phonetic: { base: '[tel]', past: '[toʊld]', participle: '[toʊld]' }, type: 'ABB', chinese: '告訴' },
+            { base: 'think', past: 'thought', participle: 'thought', phonetic: { base: '[θɪŋk]', past: '[θɔːt]', participle: '[θɔːt]' }, type: 'ABB', chinese: '思考' },
+            { base: 'understand', past: 'understood', participle: 'understood', phonetic: { base: '[ˌʌndərˈstænd]', past: '[ˌʌndərˈʊd]', participle: '[ˌʌndərˈʊd]' }, type: 'ABB', chinese: '理解' },
+            { base: 'win', past: 'won', participle: 'won', phonetic: { base: '[wɪn]', past: '[wʌn]', participle: '[wʌn]' }, type: 'ABB', chinese: '贏' },
+            { base: 'be', past: 'was/were', participle: 'been', phonetic: { base: '[bi]', past: '[wɑz]/[wɜːr]', participle: '[bɪn]' }, type: 'ABC', chinese: '是' },
+            { base: 'bear', past: 'bore', participle: 'born', phonetic: { base: '[ber]', past: '[bɔːr]', participle: '[bɔːrn]' }, type: 'ABC', chinese: '承受' },
+            { base: 'beat', past: 'beat', participle: 'beaten', phonetic: { base: '[biːt]', past: '[biːt]', participle: '[ˈbiːtn]' }, type: 'AAB', chinese: '打敗' },
+            { base: 'begin', past: 'began', participle: 'begun', phonetic: { base: '[bɪˈɡɪn]', past: '[bɪˈɡæn]', participle: '[bɪˈɡʌn]' }, type: 'ABC', chinese: '開始' },
+            { base: 'bite', past: 'bit', participle: 'bitten', phonetic: { base: '[baɪt]', past: '[bɪt]', participle: '[ˈbɪtn]' }, type: 'ABC', chinese: '咬' },
+            { base: 'blow', past: 'blew', participle: 'blown', phonetic: { base: '[bloʊ]', past: '[bluː]', participle: '[bloʊn]' }, type: 'ABC', chinese: '吹' },
+            { base: 'break', past: 'broke', participle: 'broken', phonetic: { base: '[breɪk]', past: '[broʊk]', participle: '[ˈbroʊkən]' }, type: 'ABC', chinese: '打破' },
+            { base: 'choose', past: 'chose', participle: 'chosen', phonetic: { base: '[tʃuːz]', past: '[tʃoʊz]', participle: '[ˈtʃoʊzn]' }, type: 'ABC', chinese: '選擇' },
+            { base: 'do', past: 'did', participle: 'done', phonetic: { base: '[duː]', past: '[dɪd]', participle: '[dʌn]' }, type: 'ABC', chinese: '做' },
+            { base: 'draw', past: 'drew', participle: 'drawn', phonetic: { base: '[drɔː]', past: '[druː]', participle: '[drɔːn]' }, type: 'ABC', chinese: '畫' },
+            { base: 'drink', past: 'drank', participle: 'drunk', phonetic: { base: '[drɪŋk]', past: '[dræŋk]', participle: '[drʌŋk]' }, type: 'ABC', chinese: '喝' },
+            { base: 'drive', past: 'drove', participle: 'driven', phonetic: { base: '[draɪv]', past: '[droʊv]', participle: '[ˈdrɪvn]' }, type: 'ABC', chinese: '駕駛' },
+            { base: 'eat', past: 'ate', participle: 'eaten', phonetic: { base: '[iːt]', past: '[eɪt]', participle: '[ˈiːtn]' }, type: 'ABC', chinese: '吃' },
+            { base: 'fall', past: 'fell', participle: 'fallen', phonetic: { base: '[fɔːl]', past: '[fel]', participle: '[ˈfɔːlən]' }, type: 'ABC', chinese: '掉落' },
+            { base: 'fly', past: 'flew', participle: 'flown', phonetic: { base: '[flaɪ]', past: '[fluː]', participle: '[floʊn]' }, type: 'ABC', chinese: '飛' },
+            { base: 'forget', past: 'forgot', participle: 'forgot/forgotten', phonetic: { base: '[fərˈɡet]', past: '[fərˈɑːt]', participle: '[fərˈɑːt]/[fərˈɡɑːtn]' }, type: 'ABC', chinese: '忘記' },
+            { base: 'forgive', past: 'forgave', participle: 'forgiven', phonetic: { base: '[fərˈɡɪv]', past: '[fərˈɡeɪv]', participle: '[fərˈɡɪvn]' }, type: 'ABC', chinese: '原諒' },
+            { base: 'freeze', past: 'froze', participle: 'frozen', phonetic: { base: '[friːz]', past: '[froʊz]', participle: '[ˈfroʊzn]' }, type: 'ABC', chinese: '結凍' },
+            { base: 'get', past: 'got', participle: 'got/gotten', phonetic: { base: '[ɡet]', past: '[ɡɑːt]', participle: '[ɡɑːt]/[ˈɡɑːtn]' }, type: 'ABC', chinese: '得到' },
+            { base: 'give', past: 'gave', participle: 'given', phonetic: { base: '[ɡɪv]', past: '[ɡeɪv]', participle: '[ˈɡɪvn]' }, type: 'ABC', chinese: '給予' },
+            { base: 'go', past: 'went', participle: 'gone', phonetic: { base: '[ɡoʊ]', past: '[went]', participle: '[ɡɔːn]' }, type: 'ABC', chinese: '去' },
+            { base: 'grow', past: 'grew', participle: 'grown', phonetic: { base: '[ɡroʊ]', past: '[ɡruː]', participle: '[ˈɡroʊn]' }, type: 'ABC', chinese: '生長' },
+            { base: 'hide', past: 'hid', participle: 'hidden', phonetic: { base: '[haɪd]', past: '[hɪd]', participle: '[ˈhɪdn]' }, type: 'ABC', chinese: '躲藏' },
+            { base: 'know', past: 'knew', participle: 'known', phonetic: { base: '[noʊ]', past: '[nuː]', participle: '[noʊn]' }, type: 'ABC', chinese: '知道' },
+            { base: 'lie', past: 'lay', participle: 'lain', phonetic: { base: '[laɪ]', past: '[leɪ]', participle: '[leɪn]' }, type: 'ABC', chinese: '躺' },
+            { base: 'ride', past: 'rode', participle: 'ridden', phonetic: { base: '[raɪd]', past: '[roʊd]', participle: '[ˈrɪdn]' }, type: 'ABC', chinese: '騎' },
+            { base: 'ring', past: 'rang', participle: 'rung', phonetic: { base: '[rɪŋ]', past: '[ræŋ]', participle: '[rʌŋ]' }, type: 'ABC', chinese: '響' },
+            { base: 'rise', past: 'rose', participle: 'risen', phonetic: { base: '[raɪz]', past: '[roʊz]', participle: '[ˈrɪzn]' }, type: 'ABC', chinese: '上升' },
+            { base: 'see', past: 'saw', participle: 'seen', phonetic: { base: '[siː]', past: '[sɔː]', participle: '[siːn]' }, type: 'ABC', chinese: '看見' },
+            { base: 'shake', past: 'shook', participle: 'shaken', phonetic: { base: '[ʃeɪk]', past: '[ʃʊk]', participle: '[ˈʃeɪkən]' }, type: 'ABC', chinese: '搖動' },
+            { base: 'show', past: 'showed', participle: 'shown', phonetic: { base: '[ʃoʊ]', past: '[ʃoʊd]', participle: '[ʃoʊn]' }, type: 'ABC', chinese: '展示' },
+            { base: 'sing', past: 'sang', participle: 'sung', phonetic: { base: '[sɪŋ]', past: '[sæŋ]', participle: '[sʌŋ]' }, type: 'ABC', chinese: '唱歌' },
+            { base: 'speak', past: 'spoke', participle: 'spoken', phonetic: { base: '[spiːk]', past: '[spoʊk]', participle: '[ˈspoʊkən]' }, type: 'ABC', chinese: '說話' },
+            { base: 'steal', past: 'stole', participle: 'stolen', phonetic: { base: '[stiːl]', past: '[stoʊl]', participle: '[ˈstoʊlən]' }, type: 'ABC', chinese: '偷竊' },
+            { base: 'swim', past: 'swam', participle: 'swum', phonetic: { base: '[swɪm]', past: '[swæm]', participle: '[swʌm]' }, type: 'ABC', chinese: '游泳' },
+            { base: 'take', past: 'took', participle: 'taken', phonetic: { base: '[teɪk]', past: '[tʊk]', participle: '[ˈteɪkən]' }, type: 'ABC', chinese: '拿' },
+            { base: 'throw', past: 'threw', participle: 'thrown', phonetic: { base: '[θroʊ]', past: '[θruː]', participle: '[θroʊn]' }, type: 'ABC', chinese: '丟' },
+            { base: 'wake', past: 'woke', participle: 'woken', phonetic: { base: '[weɪk]', past: '[woʊk]', participle: '[ˈwoʊkən]' }, type: 'ABC', chinese: '醒來' },
+            { base: 'wear', past: 'wore', participle: 'worn', phonetic: { base: '[wer]', past: '[wɔːr]', participle: '[wɔːrn]' }, type: 'ABC', chinese: '穿戴' },
+            { base: 'write', past: 'wrote', participle: 'written', phonetic: { base: '[raɪt]', past: '[roʊt]', participle: '[ˈrɪtn]' }, type: 'ABC', chinese: '寫' }
+        ];
+        const verbFormsMap = new Map(verbForms.map(verb => [verb.base.toLowerCase(), verb]));
+
+
+        let currentCategory = '課本單U1'; // **修改: 預設類別**
         let currentIndex = 0;
         let isReadingContinuously = false;
         let activeWords = wordCategories[currentCategory];
@@ -306,10 +597,11 @@
         });
 
         // 全域元素
-        const categoryButtons = document.querySelectorAll('.category-btn');
+        const categorySelects = document.querySelectorAll('.category-select'); 
         const flashcardTab = document.getElementById('flashcardTab');
         const dictationTab = document.getElementById('dictationTab');
         const matchingGameTab = document.getElementById('matchingGameTab');
+        const verbFormsTab = document.getElementById('verbFormsTab');
         
         // 單字卡元素
         const flashcardPage = document.getElementById('flashcardPage');
@@ -332,6 +624,7 @@
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const searchResultEl = document.getElementById('searchResult');
+        const verbTypeBtn = document.getElementById('verbTypeBtn');
 
         // 聽寫元素
         const dictationPage = document.getElementById('dictationPage');
@@ -342,7 +635,8 @@
         const checkBtn = document.getElementById('checkBtn');
         const nextDictationBtn = document.getElementById('nextDictationBtn');
         const dictationSpeechRateSelect = document.getElementById('dictationSpeechRateSelect');
-        let currentDictationWordIndex;
+        let dictationQueue = [];
+        let currentDictationWord = null;
 
         // 配對遊戲元素與變數
         const matchingGamePage = document.getElementById('matchingGamePage');
@@ -358,116 +652,311 @@
         let timerInterval;
         let seconds = 0;
 
+        // 補充 Modal 元素
+        const supplementModal = document.getElementById('supplementModal');
+        const supplementWordEl = document.getElementById('supplementWord');
+        const supplementLink1 = document.getElementById('supplementLink1');
+        const supplementLink2 = document.getElementById('supplementLink2');
+        const supplementLink3 = document.getElementById('supplementLink3');
+        const closeSupplementModal = document.getElementById('closeSupplementModal');
+        
+        // 動詞三態元素與變數
+        const verbFormsPage = document.getElementById('verbFormsPage');
+        const verbProgressEl = document.getElementById('verbProgress');
+        const verbCardEl = document.getElementById('verbCard');
+        const verbTypeLabelEl = document.getElementById('verbTypeLabel');
+        const verbBaseEl = document.getElementById('verbBase');
+        const verbChineseEl = document.getElementById('verbChinese');
+        const verbBasePhoneticEl = document.getElementById('verbBasePhonetic');
+        const verbPastEl = document.getElementById('verbPast');
+        const verbPastPhoneticEl = document.getElementById('verbPastPhonetic');
+        const verbParticipleEl = document.getElementById('verbParticiple');
+        const verbParticiplePhoneticEl = document.getElementById('verbParticiplePhonetic');
+        const verbPrevBtn = document.getElementById('verbPrevBtn');
+        const verbNextBtn = document.getElementById('verbNextBtn');
+        const verbContinuousBtn = document.getElementById('verbContinuousBtn');
+        const verbSpeakBtn = document.getElementById('verbSpeakBtn');
+        const verbReturnBtn = document.getElementById('verbReturnBtn');
+        let currentVerbIndex = 0;
+        let returnInfo = null;
+        let isVerbContinuousReading = false;
+        let stopVerbContinuousReading = false;
 
         // --- 通用函式 ---
-        function speak(text, rate = 1.0) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US';
-                utterance.rate = rate;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-        
-        function updateCategoryButtonsUI(activeCategory) {
-            categoryButtons.forEach(btn => {
-                if (btn.dataset.category === activeCategory) {
-                    btn.classList.remove('bg-gray-300', 'text-gray-700');
-                    btn.classList.add('bg-blue-500', 'text-white');
-                } else {
-                    btn.classList.remove('bg-blue-500', 'text-white');
-                    btn.classList.add('bg-gray-300', 'text-gray-700');
+
+        /**
+         * @description 使用瀏覽器內建的 SpeechSynthesis API 來發音 (作為備用方案)。此版本進行了優化，以解決部分 TTS 引擎會在動詞前加上 "to" 的問題。
+         * @param {string} text - 要發音的文字
+         * @param {number} rate - 發音速度
+         * @returns {Promise<void>} - 當發音結束時 resolve
+         */
+        function speakFallback(text, rate = 1.0) {
+            return new Promise((resolve) => {
+                if (!('speechSynthesis' in window)) {
+                    console.error('瀏覽器不支援語音合成功能。');
+                    return resolve();
                 }
+
+                const textToSpeak = text.trim();
+                if (!textToSpeak) {
+                    return resolve();
+                }
+
+                // 將要朗讀的語句包裝成一個函式
+                const createUtterance = () => {
+                    let finalText = textToSpeak;
+                    // 解決部分瀏覽器 TTS 會在動詞前加上 "to" 的問題。
+                    // 透過在單個單字後加上句點，讓 TTS 引擎將其視為一個完整的陳述句。
+                    if (!finalText.includes(' ')) {
+                        finalText += '.'; 
+                    }
+                    const utterance = new SpeechSynthesisUtterance(finalText);
+                    utterance.lang = 'en-US';
+                    utterance.rate = rate;
+                    utterance.onend = resolve;
+                    utterance.onerror = (e) => {
+                        console.error("語音合成發生錯誤:", e);
+                        resolve(); // 即使出錯也 resolve，避免中斷流程
+                    };
+                    window.speechSynthesis.speak(utterance);
+                };
+
+                // 採用更積極的取消策略：先取消，再延遲一小段時間後朗讀。
+                // 這有助於解決部分瀏覽器 cancel() 異步執行，以及 TTS 引擎試圖關聯連續呼叫的問題。
+                window.speechSynthesis.cancel(); 
+                setTimeout(createUtterance, 50);
             });
         }
 
+        /**
+         * @description 優先使用 Dictionary API 獲取音檔發音，失敗或內容為句子時則使用備用方案。此版本增加了錯誤處理和穩健性。
+         * @param {string} text - 要發音的單字或句子
+         * @param {number} rate - 發音速度
+         * @returns {Promise<void>}
+         */
+        async function speak(text, rate = 1.0) {
+            const cleanedText = text.trim();
+            if (!cleanedText) return Promise.resolve();
+
+            // 如果文字包含空格，判定為句子，直接使用備用方案
+            if (cleanedText.includes(' ')) {
+                return speakFallback(cleanedText, rate);
+            }
+            try {
+                // 對單字進行編碼以處理特殊字符
+                const encodedText = encodeURIComponent(cleanedText);
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodedText}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Dictionary API request failed with status: ${response.status}`);
+                }
+                const data = await response.json();
+                const phonetics = data[0]?.phonetics;
+                let audioUrl = '';
+
+                if (phonetics && phonetics.length > 0) {
+                    // 維持原本優先尋找英式發音 (UK) 的邏輯
+                    const ukAudio = phonetics.find(p => p.audio && p.audio.includes('-uk.mp3'));
+                    if (ukAudio) {
+                        audioUrl = ukAudio.audio;
+                    } else {
+                        // 若無英式發音，則找第一個可用的音檔
+                        const anyAudio = phonetics.find(p => p.audio);
+                        if (anyAudio) {
+                            audioUrl = anyAudio.audio;
+                        }
+                    }
+                }
+
+                if (audioUrl) {
+                    return new Promise((resolve, reject) => {
+                        const audio = new Audio(audioUrl);
+                        audio.playbackRate = rate;
+                        audio.onended = resolve;
+                        audio.onerror = (e) => {
+                            console.error(`播放音檔失敗: ${audioUrl}，改用備用方案`, e);
+                            speakFallback(cleanedText, rate).then(resolve).catch(reject);
+                        };
+                        audio.play().catch(e => {
+                            console.error(`無法自動播放音檔: ${audioUrl}，改用備用方案`, e);
+                            speakFallback(cleanedText, rate).then(resolve).catch(reject);
+                        });
+                    });
+                } else {
+                    // API 有回傳但沒有音檔，使用備用方案
+                    return speakFallback(cleanedText, rate);
+                }
+            } catch (error) {
+                console.warn(`無法從 API 獲取 "${cleanedText}" 的音檔，將使用備用 TTS 發音。原因:`, error.message);
+                return speakFallback(cleanedText, rate);
+            }
+        }
+
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
         function changeCategory(newCategory) {
             if (currentCategory === newCategory) return;
             currentCategory = newCategory;
-            activeWords = wordCategories[currentCategory];
-            updateCategoryButtonsUI(currentCategory);
+            activeWords = wordCategories[currentCategory] || []; // Handle empty categories
+
+            // 如果新類別是空的，顯示提示訊息
+            if (activeWords.length === 0) {
+                if (!flashcardPage.classList.contains('hidden')) {
+                    wordEl.textContent = '此類別無單字';
+                    partOfSpeechEl.textContent = '';
+                    phoneticsEl.textContent = '';
+                    syllablesEl.textContent = '';
+                    definitionEl.textContent = '';
+                    sentenceTranslationEl.textContent = '';
+                    progressEl.textContent = `0 / 0`;
+                    sentenceAnalysisEl.innerHTML = '';
+                    verbTypeBtn.classList.add('hidden');
+                    flashcard.classList.remove('flipped');
+                }
+                 if (!dictationPage.classList.contains('hidden')) {
+                    startNewDictationSession(); // 更新聽寫頁面狀態
+                }
+                if (!matchingGamePage.classList.contains('hidden')) {
+                    gameBoard.innerHTML = '<p class="col-span-full text-center text-gray-500">此類別無單字可進行遊戲</p>';
+                }
+                return; 
+            }
             
             if (!flashcardPage.classList.contains('hidden')) {
                 currentIndex = 0;
                 updateCard(currentIndex);
             }
             if (!dictationPage.classList.contains('hidden')) {
-                startDictation();
+                startNewDictationSession();
             }
             if (!matchingGamePage.classList.contains('hidden')) {
                 startNewMatchingGame();
             }
         }
         
-        categoryButtons.forEach(btn => {
-            btn.addEventListener('click', () => changeCategory(btn.dataset.category));
+        categorySelects.forEach(select => {
+            select.addEventListener('change', (event) => {
+                const newCategory = event.target.value;
+                // 同步所有頁面的選單
+                categorySelects.forEach(s => {
+                    if (s !== select) {
+                        s.value = newCategory;
+                    }
+                });
+                changeCategory(newCategory);
+            });
         });
 
         // --- 搜尋邏輯 ---
         function handleSearch() {
             const searchTerm = searchInput.value.trim().toLowerCase();
-            searchResultEl.textContent = ''; // 清除先前的訊息
+            searchResultEl.textContent = ''; 
             if (!searchTerm) return;
 
-            // 優先尋找開頭相符的單字
             let foundWord = allWordsWithCategory.find(word => word.english.toLowerCase().startsWith(searchTerm));
-            // 若找不到，則尋找包含關鍵字的單字
             if (!foundWord) {
                 foundWord = allWordsWithCategory.find(word => word.english.toLowerCase().includes(searchTerm));
             }
 
             if (foundWord) {
-                // 設定當前類別與單字列表
+                // 切換到包含該單字的頁面
+                showPage('flashcard');
+
+                // 更新類別並顯示單字
                 currentCategory = foundWord.category;
                 activeWords = wordCategories[currentCategory];
-                
-                // 更新UI
-                updateCategoryButtonsUI(currentCategory);
-                updateCard(foundWord.originalIndex); // 使用原始索引來顯示單字卡
-                searchInput.value = ''; // 清空搜尋欄
+                categorySelects.forEach(s => s.value = currentCategory);
+                updateCard(foundWord.originalIndex);
+                searchInput.value = '';
             } else {
-                searchResultEl.textContent = '找不到對應的單字';
+                const encodedWord = encodeURIComponent(searchTerm);
+                const url1 = `https://www.ehanlin.com.tw/app/keyword/國中/英語/${encodedWord}.html`;
+                const url2 = `https://www.ehanlin.com.tw/app/keyword/高中/英文/${encodedWord}.html`;
+                const url3 = `https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/${searchTerm}`;
+
+                searchResultEl.innerHTML = `
+                    在字庫中找不到 "${searchTerm}"，請嘗試：<br>
+                    <a href="${url1}" target="_blank" class="text-blue-600 hover:underline">翰林國中</a> |
+                    <a href="${url2}" target="_blank" class="text-blue-600 hover:underline">翰林高中</a> |
+                    <a href="${url3}" target="_blank" class="text-blue-600 hover:underline">劍橋詞典</a>
+                `;
+                searchInput.value = '';
             }
         }
 
         // --- 單字卡邏輯 ---
         function updateCard(index) {
+            if (!activeWords || activeWords.length === 0) return;
             currentIndex = index;
             const currentWord = activeWords[currentIndex];
             wordEl.textContent = currentWord.english;
             partOfSpeechEl.textContent = currentWord.partOfSpeech;
             phoneticsEl.textContent = currentWord.phonetics;
             
-            if (currentWord.syllables) {
-                syllablesEl.textContent = currentWord.syllables;
-            } else {
-                syllablesEl.textContent = '';
-            }
+            syllablesEl.textContent = currentWord.syllables ? currentWord.syllables : '';
 
             definitionEl.textContent = currentWord.chinese;
             sentenceTranslationEl.textContent = currentWord.chineseSentence;
             progressEl.textContent = `${currentIndex + 1} / ${activeWords.length}`;
             flashcard.classList.remove('flipped');
             updateSentenceAnalysis(currentWord.sentenceAnalysis);
+
+            // 檢查是否為動詞三態單字
+            const verbData = verbFormsMap.get(currentWord.english.toLowerCase());
+            if (verbData) {
+                verbTypeBtn.classList.remove('hidden');
+                verbTypeBtn.textContent = `${verbData.type}型`;
+                verbTypeBtn.dataset.verb = currentWord.english;
+            } else {
+                verbTypeBtn.classList.add('hidden');
+            }
         }
 
         function updateSentenceAnalysis(analysisData) {
             sentenceAnalysisEl.innerHTML = ''; 
-            analysisData.forEach(item => {
-                const wordContainer = document.createElement('div');
-                wordContainer.className = 'flex flex-col items-center';
-                const wordSpan = document.createElement('span');
-                wordSpan.textContent = item.text;
-                if (item.type === 'V') wordSpan.classList.add('text-red-500', 'font-bold');
-                const typeSpan = document.createElement('span');
-                typeSpan.textContent = `(${item.type})`;
-                typeSpan.classList.add('text-xs', 'text-gray-500');
-                wordContainer.appendChild(wordSpan);
-                wordContainer.appendChild(typeSpan);
-                sentenceAnalysisEl.appendChild(wordContainer);
-            });
+            if (analysisData && Array.isArray(analysisData)) {
+                analysisData.forEach(item => {
+                    const wordContainer = document.createElement('div');
+                    wordContainer.className = 'flex flex-col items-center';
+                    const wordSpan = document.createElement('span');
+                    wordSpan.textContent = item.text;
+                    if (item.type === 'V') wordSpan.classList.add('text-red-500', 'font-bold');
+                    const typeSpan = document.createElement('span');
+                    typeSpan.textContent = `(${item.type})`;
+                    typeSpan.classList.add('text-xs', 'text-gray-500');
+                    wordContainer.appendChild(wordSpan);
+                    wordContainer.appendChild(typeSpan);
+                    sentenceAnalysisEl.appendChild(wordContainer);
+                });
+            }
         }
+        
+        function stopContinuousReading() {
+            window.speechSynthesis.cancel();
+            isReadingContinuously = false;
+            continuousBtn.textContent = '連續';
+            continuousBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+            continuousBtn.classList.add('bg-purple-500', 'hover:bg-purple-600');
+        }
+
+        // --- 補充 Modal 邏輯 ---
+        function showSupplementModal(word) {
+            const encodedWord = encodeURIComponent(word);
+            supplementWordEl.textContent = word;
+            supplementLink1.href = `https://www.ehanlin.com.tw/app/keyword/國中/英語/${encodedWord}.html`;
+            supplementLink2.href = `https://www.ehanlin.com.tw/app/keyword/高中/英文/${encodedWord}.html`;
+            supplementLink3.href = `https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/${word}`;
+            supplementModal.classList.remove('hidden');
+        }
+
+        function hideSupplementModal() {
+            supplementModal.classList.add('hidden');
+        }
+
+
         if (flashcard) {
             flashcard.addEventListener('click', (event) => {
                 if (event.target.closest('button')) return;
@@ -475,139 +964,229 @@
             });
             speakBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (activeWords.length === 0) return;
                 const rate = parseFloat(flashcardSpeechRateSelect.value);
                 speak(activeWords[currentIndex].english, rate);
             });
             speakSentenceBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                 if (activeWords.length === 0) return;
                 const rate = parseFloat(flashcardSpeechRateSelect.value);
                 speak(activeWords[currentIndex].sentence, rate);
             });
             nextBtn.addEventListener('click', () => {
-                if (isReadingContinuously) {
-                    window.speechSynthesis.cancel();
-                    isReadingContinuously = false;
-                }
+                 if (activeWords.length === 0) return;
+                if (isReadingContinuously) stopContinuousReading();
                 currentIndex = (currentIndex + 1) % activeWords.length;
                 updateCard(currentIndex);
             });
             prevBtn.addEventListener('click', () => {
-                if (isReadingContinuously) {
-                    window.speechSynthesis.cancel();
-                    isReadingContinuously = false;
-                }
+                 if (activeWords.length === 0) return;
+                if (isReadingContinuously) stopContinuousReading();
                 currentIndex = (currentIndex - 1 + activeWords.length) % activeWords.length;
                 updateCard(currentIndex);
             });
             
             supplementBtn.addEventListener('click', () => {
+                 if (activeWords.length === 0) return;
                 const currentWord = activeWords[currentIndex].english;
-                const encodedWord = encodeURIComponent(currentWord);
-                const url = `https://www.ehanlin.com.tw/app/keyword/國中/英語/${encodedWord}.html`;
-                window.open(url, '_blank');
+                showSupplementModal(currentWord);
             });
             
             continuousBtn.addEventListener('click', () => {
+                 if (activeWords.length === 0) return;
                 if (isReadingContinuously) {
-                    window.speechSynthesis.cancel();
-                    isReadingContinuously = false;
-                    continuousBtn.textContent = '連續';
-                    continuousBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-                    continuousBtn.classList.add('bg-purple-500', 'hover:bg-purple-600');
+                    stopContinuousReading();
                     return;
                 }
                 isReadingContinuously = true;
                 continuousBtn.textContent = '停止';
                 continuousBtn.classList.add('bg-red-500', 'hover:bg-red-600');
                 continuousBtn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                
                 let currentContinuousIndex = currentIndex;
-                function readWordWithRepetitions(wordIndex, repetition = 0) {
-                    if (!isReadingContinuously || wordIndex >= activeWords.length) {
-                        isReadingContinuously = false;
-                        continuousBtn.click();
+
+                async function readWordWithRepetitions(wordIndex, repetition = 0) {
+                    if (!isReadingContinuously) return; 
+                    if (wordIndex >= activeWords.length) {
+                        stopContinuousReading();
                         return;
                     }
                     if (repetition < 3) {
                         updateCard(wordIndex);
                         const rate = parseFloat(flashcardSpeechRateSelect.value);
-                        const utterance = new SpeechSynthesisUtterance(activeWords[wordIndex].english);
-                        utterance.lang = 'en-US';
-                        utterance.rate = rate;
-                        utterance.onend = () => {
-                            if (isReadingContinuously) setTimeout(() => readWordWithRepetitions(wordIndex, repetition + 1), 200);
-                        };
-                        window.speechSynthesis.speak(utterance);
+                        await speak(activeWords[wordIndex].english, rate);
+                        if (isReadingContinuously) {
+                           setTimeout(() => readWordWithRepetitions(wordIndex, repetition + 1), 200);
+                        }
                     } else {
                         currentContinuousIndex++;
                         if (currentContinuousIndex < activeWords.length) {
                             setTimeout(() => readWordWithRepetitions(currentContinuousIndex, 0), 1000);
                         } else {
-                            isReadingContinuously = false;
-                            continuousBtn.click();
+                            stopContinuousReading();
                         }
                     }
                 }
                 readWordWithRepetitions(currentContinuousIndex, 0);
             });
             
-            // 搜尋事件監聽
             searchBtn.addEventListener('click', handleSearch);
             searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleSearch();
+                if (e.key === 'Enter') handleSearch();
+            });
+
+            closeSupplementModal.addEventListener('click', hideSupplementModal);
+            supplementModal.addEventListener('click', (event) => {
+                if (event.target === supplementModal) hideSupplementModal();
+            });
+
+            verbTypeBtn.addEventListener('click', () => {
+                const verbToFind = verbTypeBtn.dataset.verb;
+                const verbIndex = verbForms.findIndex(v => v.base.toLowerCase() === verbToFind.toLowerCase());
+                if (verbIndex !== -1) {
+                    returnInfo = { category: currentCategory, index: currentIndex };
+                    showPage('verbForms');
+                    currentVerbIndex = verbIndex;
+                    updateVerbCard(currentVerbIndex);
+                    verbReturnBtn.classList.remove('hidden');
                 }
             });
         }
 
-        // --- 聽寫邏輯 ---
-        function startDictation() {
-            currentDictationWordIndex = Math.floor(Math.random() * activeWords.length);
+        // --- 聽寫邏輯 (優化版) ---
+        function startNewDictationSession() {
+            // 清理介面
+            resultMessage.innerHTML = '';
             answerInput.value = '';
-            answerInput.disabled = false;
-            resultMessage.textContent = '';
-            checkBtn.classList.remove('hidden');
-            dictationProgress.textContent = `${activeWords.length} 個單字隨機抽考`;
+            checkBtn.textContent = '檢查';
+            
+            if (activeWords.length === 0) {
+                dictationProgress.textContent = "此類別無單字";
+                answerInput.disabled = true;
+                checkBtn.classList.add('hidden');
+                nextDictationBtn.classList.add('hidden');
+                currentDictationWord = null;
+                return;
+            }
+            
+            nextDictationBtn.classList.remove('hidden');
+            nextDictationBtn.textContent = '跳過';
+
+            // 建立新的測驗單字列表 (queue)
+            dictationQueue = [...activeWords.map((word, index) => ({...word, originalIndex: index}))];
+            nextDictationWord();
         }
+
+        function nextDictationWord() {
+            // 重置輸入區域
+            answerInput.value = '';
+            resultMessage.innerHTML = '';
+            answerInput.disabled = false;
+            checkBtn.classList.remove('hidden');
+            nextDictationBtn.textContent = '跳過';
+            answerInput.focus();
+
+            if (dictationQueue.length === 0) {
+                const totalWords = activeWords.length;
+                dictationProgress.textContent = `完成率: ${totalWords} / ${totalWords}`;
+                resultMessage.innerHTML = `<span class="correct text-2xl">恭喜您！</span><br><p class="mt-2 text-lg">這個類別的單字都測驗完畢了，請選擇其他類別繼續挑戰！</p>`;
+                answerInput.disabled = true;
+                checkBtn.classList.add('hidden');
+                nextDictationBtn.textContent = '重新測驗';
+                currentDictationWord = null;
+                return;
+            }
+
+            // 從 queue 中隨機挑選一個單字
+            const randomIndex = Math.floor(Math.random() * dictationQueue.length);
+            currentDictationWord = dictationQueue[randomIndex];
+
+            // 更新進度顯示
+            const totalWords = activeWords.length;
+            const completedWords = totalWords - dictationQueue.length;
+            dictationProgress.textContent = `進度: ${completedWords} / ${totalWords}`;
+
+            // 自動唸出單字
+            const rate = parseFloat(dictationSpeechRateSelect.value);
+            speak(currentDictationWord.english, rate);
+        }
+        
         if (dictationPage) {
             dictationSpeakBtn.addEventListener('click', () => {
-                const rate = parseFloat(dictationSpeechRateSelect.value);
-                speak(activeWords[currentDictationWordIndex].english, rate);
+                if (currentDictationWord) {
+                    const rate = parseFloat(dictationSpeechRateSelect.value);
+                    speak(currentDictationWord.english, rate);
+                }
             });
+
             checkBtn.addEventListener('click', () => {
+                if (!currentDictationWord || answerInput.disabled) return;
+
                 const userAnswer = answerInput.value.trim().toLowerCase();
-                const correctAnswer = activeWords[currentDictationWordIndex].english.toLowerCase();
+                const correctAnswer = currentDictationWord.english.toLowerCase();
+
                 if (userAnswer === correctAnswer) {
                     resultMessage.textContent = '答對了！';
                     resultMessage.className = 'mt-4 text-2xl font-bold correct';
                     answerInput.disabled = true;
+                    checkBtn.classList.add('hidden');
+
+                    // 從 queue 中移除答對的單字
+                    const wordIndexInQueue = dictationQueue.findIndex(word => word.originalIndex === currentDictationWord.originalIndex);
+                    if (wordIndexInQueue > -1) {
+                        dictationQueue.splice(wordIndexInQueue, 1);
+                    }
+
+                    // 答對後短暫延遲，自動跳下一題
+                    setTimeout(() => {
+                       nextDictationWord();
+                    }, 1200);
+
                 } else {
-                    resultMessage.textContent = `答錯了，正確答案是：${activeWords[currentDictationWordIndex].english}`;
+                    resultMessage.textContent = `答錯了，正確答案是：${currentDictationWord.english}`;
                     resultMessage.className = 'mt-4 text-2xl font-bold incorrect';
+                    answerInput.select(); 
                 }
             });
-            nextDictationBtn.addEventListener('click', startDictation);
+
+            nextDictationBtn.addEventListener('click', () => {
+                if (nextDictationBtn.textContent === '重新測驗') {
+                    startNewDictationSession();
+                } else {
+                    // 跳過此題，直接到下一題
+                    nextDictationWord();
+                }
+            });
+
             answerInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !answerInput.disabled) {
                     e.preventDefault();
                     checkBtn.click();
                 }
             });
         }
         
-        // --- 配對遊戲邏輯 (修改後) ---
+        // --- 配對遊戲邏輯 ---
         function startNewMatchingGame() {
             clearInterval(timerInterval);
             seconds = 0;
             gameTimerEl.textContent = '時間: 0s';
             matchedPairs = 0;
-            gamePairsMatchedEl.textContent = '已配對: 0 / 8';
             gameBoard.innerHTML = '';
             gameCompletionMessageEl.classList.add('hidden');
             lockBoard = false;
             firstCard = null;
             secondCard = null;
+
+            if (activeWords.length < 9) {
+                 gamePairsMatchedEl.textContent = '';
+                 gameBoard.innerHTML = `<p class="col-span-full text-center text-gray-500">此類別單字少於9個，無法開始遊戲</p>`;
+                 return;
+            }
             
-            const selectedWords = [...activeWords].sort(() => 0.5 - Math.random()).slice(0, 8);
+            gamePairsMatchedEl.textContent = '已配對: 0 / 9';
+            const selectedWords = [...activeWords].sort(() => 0.5 - Math.random()).slice(0, 9);
             const gameCardsData = [];
             selectedWords.forEach(word => {
                 gameCardsData.push({ content: word.english, pairId: word.english, type: 'en' });
@@ -619,13 +1198,7 @@
             gameCardsData.forEach(cardData => {
                 const card = document.createElement('div');
                 card.classList.add('game-card');
-                
-                if (cardData.type === 'en') {
-                    card.classList.add('game-card-en');
-                } else {
-                    card.classList.add('game-card-zh');
-                }
-
+                card.classList.add(cardData.type === 'en' ? 'game-card-en' : 'game-card-zh');
                 card.dataset.pairId = cardData.pairId;
                 card.textContent = cardData.content;
                 card.addEventListener('click', () => selectCard(card));
@@ -640,14 +1213,11 @@
 
         function selectCard(card) {
             if (lockBoard || card === firstCard || card.classList.contains('matched')) return;
-            
             card.classList.add('selected');
-
             if (!firstCard) {
                 firstCard = card;
                 return;
             }
-
             secondCard = card;
             checkForMatch();
         }
@@ -661,13 +1231,10 @@
         function disableCards() {
             firstCard.classList.add('matched');
             secondCard.classList.add('matched');
-            
             matchedPairs++;
-            gamePairsMatchedEl.textContent = `已配對: ${matchedPairs} / 8`;
-            
+            gamePairsMatchedEl.textContent = `已配對: ${matchedPairs} / 9`;
             resetBoard();
-
-            if (matchedPairs === 8) {
+            if (matchedPairs === 9) {
                 clearInterval(timerInterval);
                 gameCompletionMessageEl.classList.remove('hidden');
                 gameFinalTimeEl.textContent = `您花了 ${seconds} 秒！`;
@@ -689,52 +1256,204 @@
         if(newGameBtn) {
             newGameBtn.addEventListener('click', startNewMatchingGame);
         }
+        
+        // --- 動詞三態邏輯 ---
+        function updateVerbCard(index) {
+            currentVerbIndex = index;
+            const verb = verbForms[currentVerbIndex];
+            verbBaseEl.textContent = verb.base;
+            verbChineseEl.textContent = verb.chinese;
+            verbBasePhoneticEl.textContent = verb.phonetic.base;
+            verbPastEl.textContent = verb.past;
+            verbPastPhoneticEl.textContent = verb.phonetic.past;
+            verbParticipleEl.textContent = verb.participle;
+            verbParticiplePhoneticEl.textContent = verb.phonetic.participle;
+            verbProgressEl.textContent = `${index + 1} / ${verbForms.length}`;
 
+            // 更新類型標籤
+            verbTypeLabelEl.textContent = `${verb.type}型`;
+
+            // 更新卡片顏色
+            const colorClasses = {
+                'AAA': ['from-slate-100', 'to-slate-200'],
+                'ABA': ['from-green-100', 'to-teal-100'],
+                'ABB': ['from-amber-100', 'to-orange-100'],
+                'ABC': ['from-violet-100', 'to-purple-200'],
+                'AAB': ['from-sky-100', 'to-cyan-100'],
+                'Regular': ['from-gray-100', 'to-gray-200'],
+            };
+            const defaultColor = ['from-gray-100', 'to-gray-200'];
+            const classesToRemove = [...verbCardEl.classList].filter(cls => cls.startsWith('from-') || cls.startsWith('to-'));
+            verbCardEl.classList.remove(...classesToRemove, 'bg-gradient-to-br');
+            const [fromColor, toColor] = colorClasses[verb.type] || defaultColor;
+            verbCardEl.classList.add('bg-gradient-to-br', fromColor, toColor);
+
+
+            verbPastEl.classList.remove('font-bold', 'text-red-600');
+            verbParticipleEl.classList.remove('font-bold', 'text-red-600');
+
+            if (verb.specialPronunciation) {
+                if (verb.base === verb.past && verb.phonetic.base !== verb.phonetic.past) {
+                    verbPastEl.classList.add('font-bold', 'text-red-600');
+                }
+                if (verb.base === verb.participle && verb.phonetic.base !== verb.phonetic.participle) {
+                    verbParticipleEl.classList.add('font-bold', 'text-red-600');
+                }
+            }
+        }
+
+        async function speakVerbSequence(verb, repetitions = 1, rate = 1.0) {
+            const speakSingleForm = async (text) => {
+                if (!text || stopVerbContinuousReading) return;
+                const forms = text.split('/');
+                for (let i = 0; i < forms.length; i++) {
+                    if (stopVerbContinuousReading) break;
+                    const form = forms[i].trim();
+                    if (form) {
+                        await speak(form, rate);
+                        if (forms.length > 1 && i < forms.length - 1) {
+                            if (stopVerbContinuousReading) break;
+                            await delay(200);
+                        }
+                    }
+                }
+            };
+
+            for (let i = 0; i < repetitions; i++) {
+                if (stopVerbContinuousReading) break;
+
+                await speakSingleForm(verb.pronunciationOverride?.base || verb.base);
+                if (stopVerbContinuousReading) break;
+                await delay(700);
+
+                await speakSingleForm(verb.pronunciationOverride?.past || verb.past);
+                if (stopVerbContinuousReading) break;
+                await delay(700);
+
+                await speakSingleForm(verb.pronunciationOverride?.participle || verb.participle);
+                if (stopVerbContinuousReading) break;
+                await delay(700);
+            }
+        }
+
+        verbPrevBtn.addEventListener('click', () => {
+            if(isVerbContinuousReading) return;
+            currentVerbIndex = (currentVerbIndex - 1 + verbForms.length) % verbForms.length;
+            updateVerbCard(currentVerbIndex);
+        });
+
+        verbNextBtn.addEventListener('click', () => {
+            if(isVerbContinuousReading) return;
+            currentVerbIndex = (currentVerbIndex + 1) % verbForms.length;
+            updateVerbCard(currentVerbIndex);
+        });
+
+        verbSpeakBtn.addEventListener('click', () => {
+            if(isVerbContinuousReading) return;
+            const rate = parseFloat(flashcardSpeechRateSelect.value); // Use the main speed setting
+            speakVerbSequence(verbForms[currentVerbIndex], 1, rate);
+        });
+        
+        verbContinuousBtn.addEventListener('click', async () => {
+            if (isVerbContinuousReading) {
+                stopVerbContinuousReading = true;
+                window.speechSynthesis.cancel();
+                return;
+            }
+
+            isVerbContinuousReading = true;
+            stopVerbContinuousReading = false;
+            verbContinuousBtn.textContent = '停止';
+            verbContinuousBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+            verbContinuousBtn.classList.remove('bg-cyan-500', 'hover:bg-cyan-600');
+
+            try {
+                const rate = parseFloat(flashcardSpeechRateSelect.value); // Use the main speed setting
+                for (let i = currentVerbIndex; i < verbForms.length; i++) {
+                    if (stopVerbContinuousReading) break;
+                    updateVerbCard(i);
+                    await speakVerbSequence(verbForms[i], 3, rate);
+                }
+            } finally {
+                isVerbContinuousReading = false;
+                stopVerbContinuousReading = false;
+                verbContinuousBtn.textContent = '連續發音';
+                verbContinuousBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                verbContinuousBtn.classList.add('bg-cyan-500', 'hover:bg-cyan-600');
+            }
+        });
+
+        verbReturnBtn.addEventListener('click', () => {
+            if (returnInfo) {
+                currentCategory = returnInfo.category;
+                activeWords = wordCategories[currentCategory];
+                categorySelects.forEach(s => s.value = currentCategory);
+                showPage('flashcard');
+                updateCard(returnInfo.index);
+                verbReturnBtn.classList.add('hidden');
+                returnInfo = null;
+            }
+        });
 
         // --- 頁面切換邏輯 ---
         function showPage(pageId) {
-            flashcardPage.classList.add('hidden');
-            dictationPage.classList.add('hidden');
-            matchingGamePage.classList.add('hidden');
-
-            flashcardTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-            dictationTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-            matchingGameTab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+            const pages = [flashcardPage, dictationPage, matchingGamePage, verbFormsPage];
+            const tabs = [flashcardTab, dictationTab, matchingGameTab, verbFormsTab];
             
-            const allTabs = [flashcardTab, dictationTab, matchingGameTab];
-            allTabs.forEach(tab => tab.classList.add('text-gray-500'));
+            pages.forEach(p => p.classList.add('hidden'));
+            tabs.forEach(t => {
+                t.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                t.classList.add('text-gray-500');
+            });
             
-            if (isReadingContinuously) continuousBtn.click();
+            if (isReadingContinuously) stopContinuousReading();
+            if (isVerbContinuousReading) {
+                 stopVerbContinuousReading = true;
+                 window.speechSynthesis.cancel();
+            }
             clearInterval(timerInterval);
+            
+            let pageToShow, tabToActivate;
 
             if (pageId === 'flashcard') {
-                flashcardPage.classList.remove('hidden');
-                flashcardTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
-                flashcardTab.classList.remove('text-gray-500');
+                pageToShow = flashcardPage;
+                tabToActivate = flashcardTab;
                 updateCard(currentIndex);
             } else if (pageId === 'dictation') {
-                dictationPage.classList.remove('hidden');
-                dictationTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
-                dictationTab.classList.remove('text-gray-500');
-                startDictation();
+                pageToShow = dictationPage;
+                tabToActivate = dictationTab;
+                startNewDictationSession();
             } else if (pageId === 'matchingGame') {
-                matchingGamePage.classList.remove('hidden');
-                matchingGameTab.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
-                matchingGameTab.classList.remove('text-gray-500');
+                pageToShow = matchingGamePage;
+                tabToActivate = matchingGameTab;
                 startNewMatchingGame();
+            } else if (pageId === 'verbForms') {
+                pageToShow = verbFormsPage;
+                tabToActivate = verbFormsTab;
+                updateVerbCard(currentVerbIndex);
+            }
+
+            if(pageToShow) pageToShow.classList.remove('hidden');
+            if(tabToActivate) {
+                tabToActivate.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                tabToActivate.classList.remove('text-gray-500');
             }
         }
 
         flashcardTab.addEventListener('click', () => showPage('flashcard'));
         dictationTab.addEventListener('click', () => showPage('dictation'));
         matchingGameTab.addEventListener('click', () => showPage('matchingGame'));
+        verbFormsTab.addEventListener('click', () => showPage('verbForms'));
+
 
         window.onload = () => {
-            updateCategoryButtonsUI(currentCategory);
+            // 設定預設選單選項
+            categorySelects.forEach(select => {
+                select.value = currentCategory;
+            });
             showPage('flashcard');
         };
 
     </script>
 </body>
 </html>
-
