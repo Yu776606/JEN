@@ -264,6 +264,13 @@
         <div id="verbFormsPage" class="space-y-6 hidden">
             <div id="verbProgress" class="text-center text-gray-500 text-lg">1 / 100</div>
             
+	<!-- 動詞三態搜尋功能 -->
+    <div class="flex justify-center items-center gap-2 px-4">
+        <input id="verbSearchInput" type="text" placeholder="輸入動詞原型/過去式/分詞..." class="w-full max-w-xs p-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+        <button id="verbSearchBtn" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg shadow hover:bg-teal-600 transition-colors">搜尋</button>
+    </div>
+    <p id="verbSearchResult" class="text-center text-red-500 h-6 leading-tight"></p>
+
             <div id="verbCard" class="w-full h-auto min-h-[28rem] rounded-3xl shadow-lg p-6 flex flex-col justify-center items-center text-center relative noselect transition-colors duration-500">
                 <div id="verbTypeLabel" class="absolute top-4 left-6 bg-white/70 text-gray-700 font-bold py-1 px-3 rounded-full shadow"></div>
                 <div class="space-y-3">
@@ -598,7 +605,7 @@
         const searchResultEl = document.getElementById('searchResult');
         const verbTypeBtn = document.getElementById('verbTypeBtn');
 
-        // --- 聽寫元素 ---
+          // --- 聽寫元素 ---
         const dictationPage = document.getElementById('dictationPage');
         const dictationProgress = document.getElementById('dictationProgress');
         const dictationSpeakBtn = document.getElementById('dictationSpeakBtn');
@@ -607,7 +614,9 @@
         const checkBtn = document.getElementById('checkBtn');
         const nextDictationBtn = document.getElementById('nextDictationBtn');
         const dictationSpeechRateSelect = document.getElementById('dictationSpeechRateSelect');
-        let currentDictationWordIndex;
+        let currentDictationWordIndex = -1; // 使用 -1 來表示沒有作用中的單字
+        let dictationQuizWords = []; // 用於當前測驗回合單字的陣列
+        let correctlyAnsweredWords = new Set(); // 用於儲存已答對單字的集合
 
         // --- 配對遊戲元素與變數 ---
         const matchingGamePage = document.getElementById('matchingGamePage');
@@ -1175,37 +1184,113 @@
 
         // --- 聽寫邏輯 ---
         function startDictation() {
-             if (activeWords.length === 0) {
+            // 這個函式會開始一個新的聽寫回合
+            dictationQuizWords = [...activeWords]; // 為這個回合建立一個單字的淺層複製
+            correctlyAnsweredWords.clear(); // 重置已答對單字的集合
+
+            if (dictationQuizWords.length === 0) {
                 dictationProgress.textContent = "此類別無單字";
-                answerInput.value = ''; answerInput.disabled = true; resultMessage.textContent = '';
-                checkBtn.classList.add('hidden');
+                answerInput.value = '';
+                answerInput.disabled = true;
+                resultMessage.textContent = '';
+                dictationSpeakBtn.disabled = true;
+                checkBtn.disabled = true;
+                nextDictationBtn.textContent = '下一題';
                 return;
             }
-            currentDictationWordIndex = Math.floor(Math.random() * activeWords.length);
-            answerInput.value = ''; answerInput.disabled = false; resultMessage.textContent = '';
-            checkBtn.classList.remove('hidden');
-            dictationProgress.textContent = `${activeWords.length} 個單字隨機抽考`;
+            
+            dictationSpeakBtn.disabled = false;
+            checkBtn.disabled = false;
+            nextDictationBtn.textContent = '下一題';
+            loadNextDictationWord();
         }
+
+	function loadNextDictationWord() {
+            // 過濾掉已經答對的單字
+            const remainingWords = dictationQuizWords.filter(word => !correctlyAnsweredWords.has(word.english));
+            
+            updateDictationProgress();
+
+            if (remainingWords.length === 0) {
+                // 所有單字都已答對
+                resultMessage.textContent = '恭喜！您已完成所有單字！';
+                resultMessage.className = 'mt-4 text-2xl font-bold text-green-600';
+                answerInput.value = '';
+                answerInput.disabled = true;
+                checkBtn.disabled = true;
+                dictationSpeakBtn.disabled = true;
+                nextDictationBtn.textContent = '重新測驗'; // 更改按鈕文字以允許重新開始
+                currentDictationWordIndex = -1; // 使索引失效
+                return;
+            }
+
+            // 從「剩下」的單字中隨機選一個
+            const randomWord = remainingWords[Math.floor(Math.random() * remainingWords.length)];
+            // 在完整的測驗列表中找到它的原始索引，以作為穩定的參考
+            currentDictationWordIndex = dictationQuizWords.findIndex(w => w.english === randomWord.english);
+
+            answerInput.value = '';
+            answerInput.disabled = false;
+            resultMessage.textContent = '';
+            checkBtn.disabled = false;
+            
+            // 自動念出新單字並聚焦到輸入框
+            speak(dictationQuizWords[currentDictationWordIndex].english, parseFloat(dictationSpeechRateSelect.value));
+            answerInput.focus();
+        }
+
+        function updateDictationProgress() {
+            if (dictationQuizWords.length > 0) {
+                dictationProgress.textContent = `進度: ${correctlyAnsweredWords.size} / ${dictationQuizWords.length}`;
+            } else {
+                 dictationProgress.textContent = `此類別無單字`;
+            }
+        }
+        
         if (dictationPage) {
             dictationSpeakBtn.addEventListener('click', () => {
-                 if (activeWords.length === 0) return;
-                speak(activeWords[currentDictationWordIndex].english, parseFloat(dictationSpeechRateSelect.value));
+                if (currentDictationWordIndex === -1 || dictationQuizWords.length === 0) return;
+                speak(dictationQuizWords[currentDictationWordIndex].english, parseFloat(dictationSpeechRateSelect.value));
             });
+
             checkBtn.addEventListener('click', () => {
-                 if (activeWords.length === 0) return;
+                if (currentDictationWordIndex === -1 || dictationQuizWords.length === 0) return;
+                
                 const userAnswer = answerInput.value.trim().toLowerCase();
-                const correctAnswer = activeWords[currentDictationWordIndex].english.toLowerCase();
+                const correctAnswer = dictationQuizWords[currentDictationWordIndex].english.toLowerCase();
+
                 if (userAnswer === correctAnswer) {
                     resultMessage.textContent = '答對了！';
                     resultMessage.className = 'mt-4 text-2xl font-bold correct';
-                    answerInput.disabled = true;
+                    answerInput.disabled = true; // 答對後禁用輸入框
+                    checkBtn.disabled = true; // 答對後禁用檢查按鈕
+
+                    // 將單字加入已答對的集合中
+                    correctlyAnsweredWords.add(dictationQuizWords[currentDictationWordIndex].english);
+                    updateDictationProgress();
                 } else {
-                    resultMessage.textContent = `答錯了，正確答案是：${activeWords[currentDictationWordIndex].english}`;
+                    resultMessage.textContent = `答錯了，正確答案是：${dictationQuizWords[currentDictationWordIndex].english}`;
                     resultMessage.className = 'mt-4 text-2xl font-bold incorrect';
                 }
             });
-            nextDictationBtn.addEventListener('click', startDictation);
-            answerInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); checkBtn.click(); } });
+
+            nextDictationBtn.addEventListener('click', () => {
+                // 如果按鈕文字是「重新測驗」，表示這一回合結束了
+                if (nextDictationBtn.textContent === '重新測驗') {
+                    startDictation();
+                } else {
+                    loadNextDictationWord();
+                }
+            });
+
+            answerInput.addEventListener('keydown', (e) => { 
+                if (e.key === 'Enter') { 
+                    e.preventDefault(); 
+                    if (!checkBtn.disabled) {
+                        checkBtn.click(); 
+                    }
+                } 
+            });
         }
         
         // --- 配對遊戲邏輯 ---
@@ -1271,6 +1356,43 @@
         if(newGameBtn) newGameBtn.addEventListener('click', startNewMatchingGame);
         
         // --- 動詞三態邏輯 ---
+	
+	 // --- 新增的動詞三態搜尋元素 ---
+        const verbSearchInput = document.getElementById('verbSearchInput');
+        const verbSearchBtn = document.getElementById('verbSearchBtn');
+        const verbSearchResultEl = document.getElementById('verbSearchResult');
+
+        // --- 新增的動詞搜尋處理函式 ---
+        function handleVerbSearch() {
+            const searchTerm = verbSearchInput.value.trim().toLowerCase();
+            verbSearchResultEl.textContent = '';
+            if (!searchTerm) return;
+
+            const foundIndex = verbForms.findIndex(verb =>
+                verb.base.toLowerCase().includes(searchTerm) ||
+                verb.past.toLowerCase().includes(searchTerm) ||
+                verb.participle.toLowerCase().includes(searchTerm)
+            );
+
+            if (foundIndex !== -1) {
+                currentVerbIndex = foundIndex;
+                updateVerbCard(currentVerbIndex);
+                verbSearchInput.value = '';
+            } else {
+                verbSearchResultEl.textContent = `在字庫中找不到 "${searchTerm}"`;
+                verbSearchInput.value = '';
+            }
+        }
+        
+        // --- 新增的動詞搜尋事件監聽 ---
+        verbSearchBtn.addEventListener('click', handleVerbSearch);
+        verbSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleVerbSearch();
+            }
+        });
+
+
         function updateVerbCard(index) {
             currentVerbIndex = index;
             const verb = verbForms[currentVerbIndex];
