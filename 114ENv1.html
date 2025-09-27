@@ -908,14 +908,23 @@
 
         // --- 通用函式 ---
         function speak(text, rate = 1.0) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US';
-                utterance.rate = rate;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = rate;
+    // 為增強Android兼容性，加入事件監聽器
+    utterance.onstart = function () {
+      console.log('Speech started');
+    };
+    utterance.onend = function () {
+      console.log('Speech ended');
+    };
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.log('Speech synthesis not supported');
+  }
+}
         
         function changeCategory(newCategory) {
             if (!newCategory) {
@@ -1102,14 +1111,17 @@
                 if (event.target.closest('button')) return;
                 if (!isReadingContinuously) flashcard.classList.toggle('flipped');
             });
-            speakBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); if (activeWords.length === 0) return;
-                speak(activeWords[currentIndex].english, parseFloat(flashcardSpeechRateSelect.value));
-            });
-            speakSentenceBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); if (activeWords.length === 0 || !activeWords[currentIndex].sentence) return;
-                speak(activeWords[currentIndex].sentence, parseFloat(flashcardSpeechRateSelect.value));
-            });
+            speakBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (activeWords.length === 0) return;
+  speak(activeWords[currentIndex].english, parseFloat(flashcardSpeechRateSelect.value));
+});
+
+speakSentenceBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (activeWords.length === 0 || !activeWords[currentIndex].sentence) return;
+  speak(activeWords[currentIndex].sentence, parseFloat(flashcardSpeechRateSelect.value));
+});
             nextBtn.addEventListener('click', () => {
                  if (activeWords.length === 0) return;
                 if (isReadingContinuously) stopContinuousReading();
