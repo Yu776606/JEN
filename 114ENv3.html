@@ -374,7 +374,10 @@
                 <div id="clozeCompletionMessage" class="hidden flex-col items-center justify-center p-6 bg-green-100 border-2 border-green-400 rounded-lg">
                     <h3 class="text-3xl font-bold text-green-700">太棒了！</h3>
                     <p class="text-xl mt-2 text-green-600">您已完成此類別的所有填空題。</p>
-                    <button id="clozeRestartBtn" class="mt-4 bg-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:bg-green-600 transition-colors">再玩一次</button>
+                   <div class="flex items-center gap-4 mt-4">
+        <button id="clozeRestartBtn" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:bg-green-600 transition-colors">再玩一次</button>
+        <button id="clozeEndBtn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:bg-gray-600 transition-colors">結束</button>
+    </div>
                 </div>
             </div>
         </div>
@@ -678,6 +681,7 @@
         const clozeNextBtn = document.getElementById('clozeNextBtn');
         const clozeCompletionMessageEl = document.getElementById('clozeCompletionMessage');
         const clozeRestartBtn = document.getElementById('clozeRestartBtn');
+	const clozeEndBtn = document.getElementById('clozeEndBtn');
 
         const wordSelectionModal = document.getElementById('wordSelectionModal');
         const wordSelectionList = document.getElementById('wordSelectionList');
@@ -1773,6 +1777,22 @@
                 // Restart with the same set of words
                 startSentenceCloze(clozeQuizWords);
             });
+
+	    // 為「結束」按鈕新增事件監聽器
+            clozeEndBtn.addEventListener('click', () => {
+                // 隱藏測驗區域與完成訊息
+                clozeQuizArea.classList.add('hidden');
+                clozeCompletionMessageEl.classList.add('hidden');
+                
+                // 重置測驗資料
+                clozeQuizWords = [];
+                clozeCorrectSet.clear();
+                currentClozeWordInfo = null;
+
+                // 重置 UI 文字，回到初始狀態
+                clozeSelectionInfo.textContent = '尚未選擇單字';
+            });	
+
         }
 
         // --- 管理與匯入匯出邏輯 ---
@@ -2220,6 +2240,7 @@ Example response:
 
 
         // --- 頁面切換邏輯 ---
+         // --- 頁面切換邏輯 ---
         function showPage(pageId) {
             const pages = [flashcardPage, dictationPage, matchingGamePage, verbFormsPage, sentenceClozePage, managementPage];
             const tabs = [flashcardTab, dictationTab, matchingGameTab, verbFormsTab, sentenceClozeTab, managementTab];
@@ -2242,8 +2263,11 @@ Example response:
             else if (pageId === 'sentenceCloze') { 
                 pageToShow = sentenceClozePage; 
                 tabToActivate = sentenceClozeTab; 
-                clozeQuizArea.classList.add('hidden');
-                clozeSelectionInfo.textContent = '尚未選擇單字';
+                // 只有當沒有測驗正在進行時，才重置畫面
+                if (clozeQuizWords.length === 0) {
+                    clozeQuizArea.classList.add('hidden');
+                    clozeSelectionInfo.textContent = '尚未選擇單字';
+                }
             }
             else if (pageId === 'management') { 
                 pageToShow = managementPage; 
