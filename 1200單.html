@@ -567,7 +567,7 @@
         let wordCategories = {};
         let verbForms = [];
         let verbFormsMap = new Map();
-        let geminiApiKey_v2 = '';
+        let geminiApiKey = '';
         
         let allWordsWithCategory = [];
         let currentCategory = '2K單P3';
@@ -823,8 +823,8 @@
                 // 載入 API Key
                 const savedApiKey = await localforage.getItem('geminiApiKey_v2');
                 if (savedApiKey) {
-                    geminiApiKey_v2 = savedApiKey;
-                    geminiApiKeyInput.value = geminiApiKey_v2;
+                    geminiApiKey = savedApiKey;
+                    geminiApiKeyInput.value = geminiApiKey;
                 }
 
                 // 載入單字分類
@@ -1592,14 +1592,14 @@
         }
 
         async function generateClozeSentence(word) {
-            if (!geminiApiKey_v2) {
+            if (!geminiApiKey) {
                 showAlert('請先在「管理」頁面設定您的 Gemini API 金鑰，才能使用此功能。');
                 showPage('management');
                 return null;
             }
 
             try {
-                const apiKey = geminiApiKey_v2;
+                const apiKey = geminiApiKey;
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = `You are an English teacher creating a fill-in-the-blank quiz for 13-15 year old students in Taiwan. Your response MUST be a single, valid JSON object without any markdown formatting.`;
                 
@@ -1684,7 +1684,7 @@
         }
 
         async function getClozeHint() {
-            if (!geminiApiKey_v2 || !currentClozeWordInfo) {
+            if (!geminiApiKey || !currentClozeWordInfo) {
                 showAlert('無法提供提示。');
                 return;
             }
@@ -1693,7 +1693,7 @@
             clozeHintBtn.textContent = '獲取中...';
 
             try {
-                const apiKey = geminiApiKey_v2;
+                const apiKey = geminiApiKey;
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = "You are a helpful English teacher's assistant providing hints to students in Taiwan. Respond only with the hint text, in Traditional Chinese.";
                 const userQuery = `A student is stuck on this fill-in-the-blank question: "${clozeSentenceEl.innerHTML.replace(/<[^>]*>/g, '_________')}"
@@ -1880,11 +1880,11 @@
         
         // NEW: Function to get enhanced data from AI (Optimized for stability)
         async function fetchEnhancedWordData(wordObject) {
-            if (!geminiApiKey_v2) {
+            if (!geminiApiKey) {
                 return { ...wordObject, phonetics: '', partOfSpeech: '', syllables: '', sentenceAnalysis: [], verbInSentence: '' };
             }
             try {
-                const apiKey = geminiApiKey_v2;
+                const apiKey = geminiApiKey;
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const systemPrompt = `You are an English linguistic analyst. Your task is to provide detailed information for a given English word and its example sentence. You MUST respond with a single, valid JSON object without any markdown formatting. The verb in the sentence must be correctly identified.`;
@@ -1972,7 +1972,7 @@ Example response:
                     return;
                 }
                 
-                if (!geminiApiKey_v2) {
+                if (!geminiApiKey) {
                      showAlert('未設定 API 金鑰，將只匯入基本資料。', '提示');
                      wordCategories[targetCategory] = (wordCategories[targetCategory] || []).concat(initialWords.map(w => ({...w, phonetics: '', partOfSpeech: '', syllables: '', sentenceAnalysis: [], verbInSentence: '' })));
                 } else {
@@ -2009,7 +2009,7 @@ Example response:
         saveApiKeyBtn.addEventListener('click', async () => {
             const key = geminiApiKeyInput.value.trim();
             if (key) {
-                geminiApiKey_v2 = key;
+                geminiApiKey = key;
                 await localforage.setItem('geminiApiKey_v2', key);
                 showAlert('API 金鑰已成功儲存！');
             } else {
@@ -2019,7 +2019,7 @@ Example response:
 
         // AI-powered single word import logic
         async function fetchWordDataFromApis(englishWord, partOfSpeech = null) {
-            if (!geminiApiKey_v2) {
+            if (!geminiApiKey) {
                 showAlert('請先在「管理」頁面設定您的 Gemini API 金鑰，才能使用自動查找功能。');
                 showPage('management');
                 return null;
@@ -2047,7 +2047,7 @@ Example response:
             }
 
             try {
-                const apiKey = geminiApiKey_v2; 
+                const apiKey = geminiApiKey; 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = `You are an English learning assistant. For a given word, you must provide details in a specific JSON format. The example sentence must be suitable for a 13-15 year old student and must contain the given word.`;
                 
@@ -2125,7 +2125,7 @@ Example response:
                 return { english, partOfSpeech };
             });
 
-            if (!geminiApiKey_v2) {
+            if (!geminiApiKey) {
                 showAlert('請先在「管理」頁面設定您的 Gemini API 金鑰，才能使用自動查找功能。');
                 showPage('management');
                 importSingleWordsBtn.disabled = false;
