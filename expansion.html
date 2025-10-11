@@ -53,6 +53,18 @@
                 <p class="text-slate-500 mt-2">輸入一個詞，AI 幫你探索生動的句子！</p>
             </header>
 
+            <!-- API Key Section -->
+            <section id="api-key-section" class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <h2 class="text-lg font-semibold text-slate-700">API 金鑰設定</h2>
+                <p class="text-sm text-slate-500 mt-1 mb-3">請輸入您的 Google AI Gemini API 金鑰。金鑰將會安全地儲存在您的瀏覽器中。</p>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="password" id="api-key-input" placeholder="請在此貼上您的 API 金鑰" class="flex-grow px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500">
+                    <button id="save-key-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition">儲存</button>
+                    <button id="test-key-btn" class="bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition">測試</button>
+                </div>
+                <div id="api-status" class="mt-2 text-sm h-5"></div>
+            </section>
+
             <!-- Initial Input Section -->
             <section id="initial-section" class="text-center">
                 <label for="initial-input" class="block text-lg font-medium text-slate-700 mb-2">請先輸入一個「名詞」或「主題」</label>
@@ -104,6 +116,12 @@
         const stepsContainer = document.getElementById('steps-container');
         const resetBtn = document.getElementById('reset-btn');
 
+        // New DOM Elements for API Key
+        const apiKeyInput = document.getElementById('api-key-input');
+        const saveKeyBtn = document.getElementById('save-key-btn');
+        const testKeyBtn = document.getElementById('test-key-btn');
+        const apiStatus = document.getElementById('api-status');
+
         const stepDefinitions = [
             { title: '第一步：加上量詞', description: '請替你的名詞加上量詞。例如：「一隻」、「一朵」、「一台」等。', key: 'step1' },
             { title: '第二步：加上動作或狀態', description: '幫你的名詞加上動作或狀態。例如：「跑著」、「漂流著」、「飛起來」等。', key: 'step2' },
@@ -113,8 +131,81 @@
             { title: '第六步：發揮想像力', description: '用「還有」或「彷彿」等詞語，讓句子更有畫面。例如：「還有像波浪般的雲」、「彷彿會跳舞的花朵」等。', key: 'step6' }
         ];
 
+        // Load stored API key on startup
+        window.addEventListener('load', () => {
+            const storedApiKey = localStorage.getItem('geminiApiKey');
+            if (storedApiKey) {
+                apiKeyInput.value = storedApiKey;
+                apiStatus.textContent = '已載入儲存的金鑰。';
+                apiStatus.className = 'mt-2 text-sm h-5 text-green-600';
+            } else {
+                apiStatus.textContent = '尚未設定 API 金鑰。';
+                apiStatus.className = 'mt-2 text-sm h-5 text-slate-600';
+            }
+        });
+
+        // Event listener for saving API key
+        saveKeyBtn.addEventListener('click', () => {
+            const apiKey = apiKeyInput.value.trim();
+            if (apiKey) {
+                localStorage.setItem('geminiApiKey', apiKey);
+                apiStatus.textContent = 'API 金鑰已成功儲存！';
+                apiStatus.className = 'mt-2 text-sm h-5 text-green-600';
+            } else {
+                localStorage.removeItem('geminiApiKey');
+                apiStatus.textContent = 'API 金鑰已清除。';
+                apiStatus.className = 'mt-2 text-sm h-5 text-slate-600';
+            }
+        });
+
+        // Event listener for testing API key
+        testKeyBtn.addEventListener('click', async () => {
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                apiStatus.textContent = '請先輸入 API 金鑰。';
+                apiStatus.className = 'mt-2 text-sm h-5 text-red-500';
+                return;
+            }
+
+            apiStatus.textContent = '正在測試金鑰...';
+            apiStatus.className = 'mt-2 text-sm h-5 text-slate-600';
+            testKeyBtn.disabled = true;
+
+            try {
+                const testApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+                const response = await fetch(testApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "hello" }] }] }),
+                });
+
+                if (response.ok) {
+                    apiStatus.textContent = '金鑰有效！';
+                    apiStatus.className = 'mt-2 text-sm h-5 text-green-600';
+                } else {
+                    const error = await response.json();
+                    const message = error.error?.message || '未知錯誤';
+                    apiStatus.textContent = `金鑰無效或發生錯誤`;
+                    apiStatus.className = 'mt-2 text-sm h-5 text-red-500';
+                }
+            } catch (err) {
+                apiStatus.textContent = '測試失敗，請檢查網路連線。';
+                apiStatus.className = 'mt-2 text-sm h-5 text-red-500';
+                console.error("API Key Test Error:", err);
+            } finally {
+                testKeyBtn.disabled = false;
+            }
+        });
+
         // Functions
         async function startPractice() {
+            const apiKey = localStorage.getItem('geminiApiKey');
+            if (!apiKey) {
+                errorMessage.textContent = '請先在上方設定並儲存您的 API 金鑰！';
+                document.getElementById('api-key-section').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
             const initialText = initialInput.value.trim();
             if (initialText === '') {
                 errorMessage.textContent = '請先輸入一個名詞或主題！';
@@ -136,10 +227,9 @@
                 await generateAndDisplayExamples(initialText);
             } catch (error) {
                 console.error('Error generating examples:', error);
-                errorMessage.textContent = '產生範例時發生錯誤，請稍後再試。';
-                resetPractice(); // Reset UI on error
+                errorMessage.textContent = '產生範例時發生錯誤，請檢查您的金鑰是否正確或稍後再試。';
+                resetPractice();
             } finally {
-                // UI update
                 startBtn.disabled = false;
                 startBtn.textContent = '產生靈感';
                 loadingSection.classList.add('hidden');
@@ -147,7 +237,7 @@
         }
         
         async function generateAndDisplayExamples(term) {
-            const apiKey = ""; // Canvas will provide it.
+            const apiKey = localStorage.getItem('geminiApiKey');
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             const systemPrompt = "你是一個創意寫作助理，專門幫助 10-16 歲的學生將簡單的詞語擴寫成生動的句子。請嚴格遵循指定的 JSON 格式輸出，不要包含任何 markdown 語法。你的任務是創作 3 組獨立的句子擴寫路徑，每一組路徑都應包含從第一步到第六步的完整演進，後一步的句子必須是前一步句子的自然擴充。";
