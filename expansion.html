@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>句子擴寫小幫手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .step-card {
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .step-card:nth-child(1) { animation-delay: 0.1s; }
+        .step-card:nth-child(2) { animation-delay: 0.2s; }
+        .step-card:nth-child(3) { animation-delay: 0.3s; }
+        .step-card:nth-child(4) { animation-delay: 0.4s; }
+        .step-card:nth-child(5) { animation-delay: 0.5s; }
+        .step-card:nth-child(6) { animation-delay: 0.6s; }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loader {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <main class="w-full max-w-2xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-10">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-800">句子擴寫小幫手</h1>
+                <p class="text-slate-500 mt-2">輸入一個詞，AI 幫你探索生動的句子！</p>
+            </header>
+
+            <!-- Initial Input Section -->
+            <section id="initial-section" class="text-center">
+                <label for="initial-input" class="block text-lg font-medium text-slate-700 mb-2">請先輸入一個「名詞」或「主題」</label>
+                <input type="text" id="initial-input" placeholder="例如：貓、星空、夢想..." class="w-full max-w-md mx-auto px-4 py-3 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <div id="error-message" class="text-red-500 mt-2 h-5"></div>
+                <button id="start-btn" class="mt-4 bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 shadow-md flex items-center justify-center mx-auto disabled:bg-slate-400">
+                    產生靈感
+                </button>
+            </section>
+
+            <!-- Loading Section -->
+            <section id="loading-section" class="hidden text-center py-10">
+                <div class="loader mx-auto"></div>
+                <p class="text-slate-600 mt-4">AI 正在為您腦力激盪中，請稍候...</p>
+            </section>
+
+            <!-- Main Content: Results -->
+            <section id="main-content" class="hidden">
+                <div class="mb-6 text-center">
+                     <button id="reset-btn" class="w-full md:w-auto bg-slate-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-slate-700 transition">
+                        換個詞再試一次
+                    </button>
+                </div>
+                <!-- Original Word Display -->
+                <div class="mb-8 p-4 bg-slate-50 border-l-4 border-blue-500 rounded-r-lg">
+                    <h2 class="text-sm font-semibold text-slate-600 mb-1">你的創作主題：</h2>
+                    <p id="sentence-display" class="text-2xl text-slate-800 font-bold">...</p>
+                </div>
+
+                <!-- Steps Container -->
+                <div id="steps-container" class="space-y-6">
+                    <!-- Steps will be dynamically generated here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // DOM Elements
+        const startBtn = document.getElementById('start-btn');
+        const initialInput = document.getElementById('initial-input');
+        const errorMessage = document.getElementById('error-message');
+        
+        const initialSection = document.getElementById('initial-section');
+        const loadingSection = document.getElementById('loading-section');
+        const mainContent = document.getElementById('main-content');
+        
+        const sentenceDisplay = document.getElementById('sentence-display');
+        const stepsContainer = document.getElementById('steps-container');
+        const resetBtn = document.getElementById('reset-btn');
+
+        const stepDefinitions = [
+            { title: '第一步：加上量詞', description: '請替你的名詞加上量詞。例如：「一隻」、「一朵」、「一台」等。', key: 'step1' },
+            { title: '第二步：加上動作或狀態', description: '幫你的名詞加上動作或狀態。例如：「跑著」、「漂流著」、「飛起來」等。', key: 'step2' },
+            { title: '第三步：加入場景或地點', description: '將場景或地點加入句子。例如：「在教室裡」、「在天空中」、「在公園裡」等。', key: 'step3' },
+            { title: '第四步：使用比喻或修辭', description: '嘗試用比喻或修辭美化句子。例如：「像棉花糖一樣」、「像波浪一般」等。', key: 'step4' },
+            { title: '第五步：加上合適的形容詞', description: '讓事物更具特色。例如：「潔白的」、「溫暖的」、「巨大的」等。', key: 'step5' },
+            { title: '第六步：發揮想像力', description: '用「還有」或「彷彿」等詞語，讓句子更有畫面。例如：「還有像波浪般的雲」、「彷彿會跳舞的花朵」等。', key: 'step6' }
+        ];
+
+        // Functions
+        async function startPractice() {
+            const initialText = initialInput.value.trim();
+            if (initialText === '') {
+                errorMessage.textContent = '請先輸入一個名詞或主題！';
+                return;
+            }
+            errorMessage.textContent = '';
+            
+            // UI update
+            startBtn.disabled = true;
+            startBtn.textContent = '產生中...';
+            initialSection.classList.add('hidden');
+            loadingSection.classList.remove('hidden');
+            mainContent.classList.add('hidden');
+            stepsContainer.innerHTML = ''; 
+
+            sentenceDisplay.textContent = initialText;
+
+            try {
+                await generateAndDisplayExamples(initialText);
+            } catch (error) {
+                console.error('Error generating examples:', error);
+                errorMessage.textContent = '產生範例時發生錯誤，請稍後再試。';
+                resetPractice(); // Reset UI on error
+            } finally {
+                // UI update
+                startBtn.disabled = false;
+                startBtn.textContent = '產生靈感';
+                loadingSection.classList.add('hidden');
+            }
+        }
+        
+        async function generateAndDisplayExamples(term) {
+            const apiKey = ""; // Canvas will provide it.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            
+            const systemPrompt = "你是一個創意寫作助理，專門幫助 10-16 歲的學生將簡單的詞語擴寫成生動的句子。請嚴格遵循指定的 JSON 格式輸出，不要包含任何 markdown 語法。你的任務是創作 3 組獨立的句子擴寫路徑，每一組路徑都應包含從第一步到第六步的完整演進，後一步的句子必須是前一步句子的自然擴充。";
+            const userQuery = `請以「${term}」為主題，創作 3 組獨立的、層層遞進的句子擴寫範例。`;
+
+            const schema = {
+                type: 'OBJECT',
+                properties: {
+                    paths: {
+                        type: 'ARRAY',
+                        description: '三組獨立的句子擴寫路徑',
+                        items: {
+                            type: 'OBJECT',
+                            properties: {
+                                step1: { type: 'STRING', description: '第一步「加上量詞」的句子' },
+                                step2: { type: 'STRING', description: '第二步「加上動作或狀態」的句子' },
+                                step3: { type: 'STRING', description: '第三步「加入場景或地點」的句子' },
+                                step4: { type: 'STRING', description: '第四步「使用比喻或修辭」的句子' },
+                                step5: { type: 'STRING', description: '第五步「加上合適的形容詞」的句子' },
+                                step6: { type: 'STRING', description: '第六步「發揮想像力」的句子' }
+                            },
+                            required: ['step1', 'step2', 'step3', 'step4', 'step5', 'step6']
+                        }
+                    }
+                },
+                required: ['paths']
+            };
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                }
+            };
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+                const generatedData = JSON.parse(candidate.content.parts[0].text);
+                displayResults(generatedData.paths);
+            } else {
+                throw new Error("Invalid response structure from API.");
+            }
+        }
+
+        function displayResults(paths) {
+            stepsContainer.innerHTML = ''; // Clear previous results
+            
+            stepDefinitions.forEach(stepDef => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step-card p-6 bg-white border border-slate-200 rounded-xl shadow-sm';
+                
+                let exampleListHTML = '<ul class="list-disc list-inside mt-4 space-y-2 text-slate-700">';
+                
+                paths.forEach(path => {
+                    const sentence = path[stepDef.key] || '...'; // Get the sentence for the current step from each path
+                    exampleListHTML += `<li class="ml-2">${sentence}</li>`;
+                });
+
+                exampleListHTML += '</ul>';
+
+                stepElement.innerHTML = `
+                    <h3 class="text-xl font-bold text-slate-800">${stepDef.title}</h3>
+                    <p class="text-slate-600 mt-1 mb-4">${stepDef.description}</p>
+                    ${exampleListHTML}
+                `;
+                stepsContainer.appendChild(stepElement);
+            });
+            
+            mainContent.classList.remove('hidden');
+        }
+
+        function resetPractice() {
+            initialInput.value = '';
+            
+            mainContent.classList.add('hidden');
+            loadingSection.classList.add('hidden');
+            initialSection.classList.remove('hidden');
+            errorMessage.textContent = '';
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', startPractice);
+        initialInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                startPractice();
+            }
+        });
+        resetBtn.addEventListener('click', resetPractice);
+
+    </script>
+</body>
+</html>
+
