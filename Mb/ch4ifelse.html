@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音量控制流程圖教學</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 確保中文字體清晰 */
+        body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+        }
+        /* 流程圖節點基本樣式 */
+        .node-base {
+            transition: all 0.3s ease;
+            stroke: #333;
+            stroke-width: 2px;
+        }
+        .node-text {
+            font-size: 18px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none; /* 讓點擊穿透文字到圖形上 */
+        }
+        /* 高亮樣式 */
+        .active-node {
+            fill: #FDE047 !important; /* 黃色高亮 */
+            stroke: #EAB308 !important;
+            stroke-width: 4px !important;
+            filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.6));
+        }
+        /* 錯誤時的震動動畫 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-node {
+            animation: shake 0.3s ease-in-out 2;
+        }
+        /* 音量格子樣式 */
+        .volume-bar {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-blue-50 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white p-4 shadow-md">
+        <h1 class="text-2xl md:text-3xl font-bold text-center">🔊 音量控制程式流程圖</h1>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow flex flex-col lg:flex-row p-4 gap-4 items-stretch">
+
+        <!-- Left Side: SVG Flowchart (佔大螢幕 2/3) -->
+        <div class="lg:w-2/3 bg-white rounded-2xl shadow-lg overflow-hidden border-4 border-indigo-100 p-2 flex justify-center items-start overflow-auto">
+            <!-- SVG viewBox 設定為適合縱向流程圖的比例 -->
+            <svg id="flowchartSvg" viewBox="0 0 800 1100" class="w-full h-auto max-h-[85vh]" preserveAspectRatio="xMidYMin meet">
+                <defs>
+                    <!-- 定義箭頭 -->
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#555" />
+                    </marker>
+                </defs>
+
+                <!-- 連接線 (Paths) - 先畫線確保在節點下方 -->
+                <g stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrowhead)">
+                    <!-- 主幹道 (向下) -->
+                    <path d="M400,70 V130" /> <!-- Start to P_Minus -->
+                    <path d="M400,210 V260" /> <!-- P_Minus to D_200 -->
+                    <path d="M400,340 V420" /> <!-- D_200 No to D_150 -->
+                    <path d="M400,500 V580" /> <!-- D_150 No to D_100 -->
+                    <path d="M400,660 V740" /> <!-- D_100 No to D_50 -->
+                    <path d="M400,820 V880" /> <!-- D_50 No to P_1 -->
+                    <path d="M400,960 V1020" /> <!-- P_1 to End -->
+
+                    <!-- 分支 (Yes 向右) -->
+                    <path d="M480,300 H600" /> <!-- D_200 Yes to P_Full -->
+                    <path d="M480,460 H600" /> <!-- D_150 Yes to P_4 -->
+                    <path d="M480,620 H600" /> <!-- D_100 Yes to P_3 -->
+                    <path d="M480,780 H600" /> <!-- D_50 Yes to P_2 -->
+
+                    <!-- 分支匯合到結束 (從右側各節點向下匯合) -->
+                    <!-- 為了讓圖形乾淨，我們使用單獨的結束點或匯合線。這裡採用匯合線。 -->
+                     <path d="M760,300 H780 V1045 H445" marker-end="none" stroke-dasharray="5,5" opacity="0.3"/> <!-- 示意匯合路徑 -->
+                </g>
+                <!-- 為每個分支增加明確的 STOP 以符合原始 UML -->
+                <g stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrowhead)">
+                   <path d="M680,340 V370" /> <path d="M680,500 V530" /> <path d="M680,660 V690" /> <path d="M680,820 V850" />
+                </g>
+
+
+                <!-- Nodes (節點) -->
+                <!-- Start -->
+                <g id="node_start" class="node-group" transform="translate(400, 40)">
+                    <ellipse cx="0" cy="0" rx="80" ry="30" fill="#86EFAC" class="node-base"/>
+                    <text x="0" y="0" class="node-text">開始 (按下P1)</text>
+                </g>
+
+                <!-- Process: 音量 - 50 -->
+                <g id="node_p_minus" class="node-group" transform="translate(400, 170)">
+                    <rect x="-100" y="-40" width="200" height="80" rx="10" fill="#BFDBFE" class="node-base"/>
+                    <text x="0" y="0" class="node-text">設定 音量 = 音量 - 50</text>
+                </g>
+
+                <!-- Decision: > 200 -->
+                <g id="node_d_200" class="node-group" transform="translate(400, 300)">
+                    <polygon points="0,-40 80,0 0,40 -80,0" fill="#FDBA74" class="node-base"/>
+                    <text x="0" y="0" class="node-text">音量 > 200 ?</text>
+                    <text x="90" y="-15" font-size="16" fill="#059669" font-weight="bold">是</text>
+                    <text x="15" y="60" font-size="16" fill="#DC2626" font-weight="bold">否</text>
+                </g>
+
+                <!-- Process: 滿格 -->
+                <g id="node_p_full" class="node-group" transform="translate(680, 300)">
+                    <rect x="-80" y="-40" width="160" height="80" rx="10" fill="#DDD6FE" class="node-base"/>
+                    <text x="0" y="0" class="node-text">顯示 滿格圖示</text>
+                </g>
+                 <!-- Stop 1 -->
+                 <g id="node_stop_1" transform="translate(680, 400)">
+                    <circle cx="0" cy="0" r="25" fill="#FCA5A5" class="node-base"/>
+                    <text x="0" y="0" font-size="14" class="node-text">結束</text>
+                </g>
+
+                <!-- Decision: > 150 -->
+                <g id="node_d_150" class="node-group" transform="translate(400, 460)">
+                    <polygon points="0,-40 80,0 0,40 -80,0" fill="#FDBA74" class="node-base"/>
+                    <text x="0" y="0" class="node-text">音量 > 150 ?</text>
+                    <text x="90" y="-15" font-size="16" fill="#059669" font-weight="bold">是</text>
+                    <text x="15" y="60" font-size="16" fill="#DC2626" font-weight="bold">否</text>
+                </g>
+
+                <!-- Process: 4格 -->
+                <g id="node_p_4" class="node-group" transform="translate(680, 460)">
+                    <rect x="-80" y="-40" width="160" height="80" rx="10" fill="#DDD6FE" class="node-base"/>
+                    <text x="0" y="0" class="node-text">顯示 4格圖示</text>
+                </g>
+                <!-- Stop 2 -->
+                <g id="node_stop_2" transform="translate(680, 560)">
+                    <circle cx="0" cy="0" r="25" fill="#FCA5A5" class="node-base"/>
+                    <text x="0" y="0" font-size="14" class="node-text">結束</text>
+                </g>
+
+                <!-- Decision: > 100 -->
+                <g id="node_d_100" class="node-group" transform="translate(400, 620)">
+                    <polygon points="0,-40 80,0 0,40 -80,0" fill="#FDBA74" class="node-base"/>
+                    <text x="0" y="0" class="node-text">音量 > 100 ?</text>
+                    <text x="90" y="-15" font-size="16" fill="#059669" font-weight="bold">是</text>
+                    <text x="15" y="60" font-size="16" fill="#DC2626" font-weight="bold">否</text>
+                </g>
+
+                <!-- Process: 3格 -->
+                <g id="node_p_3" class="node-group" transform="translate(680, 620)">
+                    <rect x="-80" y="-40" width="160" height="80" rx="10" fill="#DDD6FE" class="node-base"/>
+                    <text x="0" y="0" class="node-text">顯示 3格圖示</text>
+                </g>
+                 <!-- Stop 3 -->
+                 <g id="node_stop_3" transform="translate(680, 720)">
+                    <circle cx="0" cy="0" r="25" fill="#FCA5A5" class="node-base"/>
+                    <text x="0" y="0" font-size="14" class="node-text">結束</text>
+                </g>
+
+                <!-- Decision: > 50 -->
+                <g id="node_d_50" class="node-group" transform="translate(400, 780)">
+                    <polygon points="0,-40 80,0 0,40 -80,0" fill="#FDBA74" class="node-base"/>
+                    <text x="0" y="0" class="node-text">音量 > 50 ?</text>
+                    <text x="90" y="-15" font-size="16" fill="#059669" font-weight="bold">是</text>
+                    <text x="15" y="60" font-size="16" fill="#DC2626" font-weight="bold">否</text>
+                </g>
+
+                <!-- Process: 2格 -->
+                <g id="node_p_2" class="node-group" transform="translate(680, 780)">
+                    <rect x="-80" y="-40" width="160" height="80" rx="10" fill="#DDD6FE" class="node-base"/>
+                    <text x="0" y="0" class="node-text">顯示 2格圖示</text>
+                </g>
+                 <!-- Stop 4 -->
+                 <g id="node_stop_4" transform="translate(680, 880)">
+                    <circle cx="0" cy="0" r="25" fill="#FCA5A5" class="node-base"/>
+                    <text x="0" y="0" font-size="14" class="node-text">結束</text>
+                </g>
+
+                <!-- Process: 1格 (Else) -->
+                <g id="node_p_1" class="node-group" transform="translate(400, 920)">
+                    <rect x="-80" y="-40" width="160" height="80" rx="10" fill="#DDD6FE" class="node-base"/>
+                    <text x="0" y="0" class="node-text">顯示 1格圖示</text>
+                </g>
+
+                <!-- End Main -->
+                <g id="node_end_main" class="node-group" transform="translate(400, 1050)">
+                     <ellipse cx="0" cy="0" rx="80" ry="30" fill="#FCA5A5" class="node-base"/>
+                    <text x="0" y="0" class="node-text">結束</text>
+                </g>
+
+            </svg>
+        </div>
+
+        <!-- Right Side: Controls & Info (佔大螢幕 1/3) -->
+        <div class="lg:w-1/3 flex flex-col gap-4">
+
+            <!-- Info Panel -->
+            <div class="bg-white rounded-2xl shadow-lg border-4 border-orange-200 p-4 flex-grow flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 pb-2">📋 當前步驟說明</h2>
+                <div id="stepDescription" class="text-xl md:text-2xl text-gray-700 leading-relaxed flex-grow p-4 bg-orange-50 rounded-xl">
+                    請設定初始音量，然後按下「模擬 P1 按下」開始。
+                </div>
+            </div>
+
+            <!-- Volume Status Panel -->
+            <div class="bg-white rounded-2xl shadow-lg border-4 border-blue-200 p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xl font-bold text-gray-800">🔊 音量變數: <span id="volumeValue" class="text-blue-600 text-3xl">250</span></h3>
+                </div>
+                <!-- Volume Icons -->
+                <div class="flex gap-2 h-16 bg-gray-200 p-2 rounded-xl items-end justify-around" id="volumeIconDisplay">
+                     <!-- Bars will be generated by JS or static here and toggled -->
+                     <div class="volume-bar w-1/6 bg-gray-400 rounded-t-md h-[20%]" id="bar1"></div>
+                     <div class="volume-bar w-1/6 bg-gray-400 rounded-t-md h-[40%]" id="bar2"></div>
+                     <div class="volume-bar w-1/6 bg-gray-400 rounded-t-md h-[60%]" id="bar3"></div>
+                     <div class="volume-bar w-1/6 bg-gray-400 rounded-t-md h-[80%]" id="bar4"></div>
+                     <div class="volume-bar w-1/6 bg-gray-400 rounded-t-md h-[100%]" id="bar5"></div>
+                </div>
+                <div class="text-center text-gray-500 mt-1 font-bold" id="iconLabel">等待開始...</div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="bg-white rounded-2xl shadow-lg border-4 border-green-200 p-4">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🎮 控制台</h3>
+
+                <!-- Initial Settings -->
+                <div class="flex gap-2 mb-4 items-center">
+                     <label class="font-bold text-lg whitespace-nowrap">初始音量:</label>
+                     <input type="number" id="initialVolume" value="250" step="10" class="border-2 border-gray-300 rounded-lg p-2 text-xl w-full text-center focus:border-indigo-500" onchange="resetFlow()">
+                </div>
+                <button id="startBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-2xl font-bold py-4 px-6 rounded-xl shadow-md transition-all active:scale-95 mb-4">
+                    ▶ 模擬 P1 按下 (開始)
+                </button>
+
+                <!-- Flow Controls -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="prevBtn" class="bg-gray-500 hover:bg-gray-600 text-white text-xl font-bold py-3 rounded-xl shadow disabled:opacity-50 disabled:cursor-not-allowed">
+                        ⬅ 上一步
+                    </button>
+                    <button id="nextBtn" class="bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold py-3 rounded-xl shadow disabled:opacity-50 disabled:cursor-not-allowed">
+                        下一步 ➡
+                    </button>
+                    <button id="yesBtn" class="bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-3 rounded-xl shadow disabled:opacity-50 disabled:cursor-not-allowed col-span-1">
+                        ✅ 是 (True)
+                    </button>
+                    <button id="noBtn" class="bg-red-500 hover:bg-red-600 text-white text-xl font-bold py-3 rounded-xl shadow disabled:opacity-50 disabled:cursor-not-allowed col-span-1">
+                        ❌ 否 (False)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- 變數與狀態 ---
+        let volume = 250;
+        let currentStepId = null;
+        let historyStack = [];
+        let isRunning = false;
+
+        // --- 節點定義 (State Machine) ---
+        // 定義每個節點的行為、文字說明、以及下一步的去向
+        const nodes = {
+            'node_start': {
+                type: 'start',
+                text: "程式開始。\n等待使用者按下 P1 按鈕...",
+                next: 'node_p_minus'
+            },
+            'node_p_minus': {
+                type: 'process',
+                text: "執行動作：\n將「音量」變數的值減少 50。",
+                action: () => { volume -= 50; },
+                reverse: () => { volume += 50; }, // 用於上一步
+                next: 'node_d_200'
+            },
+            'node_d_200': {
+                type: 'decision',
+                text: "判斷：\n檢查目前「音量」是否大於 200？",
+                condition: () => volume > 200,
+                yes: 'node_p_full',
+                no: 'node_d_150'
+            },
+            'node_p_full': {
+                type: 'process',
+                text: "條件成立 (Yes)：\n螢幕顯示「滿格」音量圖示。",
+                iconLevel: 5,
+                next: 'node_stop_1'
+            },
+            'node_d_150': {
+                type: 'decision',
+                text: "判斷：\n檢查目前「音量」是否大於 150？",
+                condition: () => volume > 150,
+                yes: 'node_p_4',
+                no: 'node_d_100'
+            },
+            'node_p_4': {
+                type: 'process',
+                text: "條件成立 (Yes)：\n螢幕顯示「4格」音量圖示。",
+                iconLevel: 4,
+                next: 'node_stop_2'
+            },
+            'node_d_100': {
+                type: 'decision',
+                text: "判斷：\n檢查目前「音量」是否大於 100？",
+                condition: () => volume > 100,
+                yes: 'node_p_3',
+                no: 'node_d_50'
+            },
+             'node_p_3': {
+                type: 'process',
+                text: "條件成立 (Yes)：\n螢幕顯示「3格」音量圖示。",
+                iconLevel: 3,
+                next: 'node_stop_3'
+            },
+            'node_d_50': {
+                type: 'decision',
+                text: "判斷：\n檢查目前「音量」是否大於 50？",
+                condition: () => volume > 50,
+                yes: 'node_p_2',
+                no: 'node_p_1'
+            },
+            'node_p_2': {
+                type: 'process',
+                text: "條件成立 (Yes)：\n螢幕顯示「2格」音量圖示。",
+                iconLevel: 2,
+                next: 'node_stop_4'
+            },
+            'node_p_1': {
+                type: 'process',
+                text: "以上條件都不成立 (No)：\n螢幕顯示「1格」音量圖示。",
+                iconLevel: 1,
+                next: 'node_end_main'
+            },
+            // 結束節點們
+            'node_stop_1': { type: 'end', text: "本次流程結束。", iconLevel: 5 },
+            'node_stop_2': { type: 'end', text: "本次流程結束。", iconLevel: 4 },
+            'node_stop_3': { type: 'end', text: "本次流程結束。", iconLevel: 3 },
+            'node_stop_4': { type: 'end', text: "本次流程結束。", iconLevel: 2 },
+            'node_end_main': { type: 'end', text: "本次流程結束。", iconLevel: 1 }
+        };
+
+        // --- DOM 元素 ---
+        const elVolumeVal = document.getElementById('volumeValue');
+        const elStepDesc = document.getElementById('stepDescription');
+        const elIconLabel = document.getElementById('iconLabel');
+        const btnStart = document.getElementById('startBtn');
+        const btnPrev = document.getElementById('prevBtn');
+        const btnNext = document.getElementById('nextBtn');
+        const btnYes = document.getElementById('yesBtn');
+        const btnNo = document.getElementById('noBtn');
+        const bars = [
+            document.getElementById('bar1'),
+            document.getElementById('bar2'),
+            document.getElementById('bar3'),
+            document.getElementById('bar4'),
+            document.getElementById('bar5')
+        ];
+
+        // --- 核心功能函數 ---
+
+        function updateUI() {
+            // 更新音量顯示
+            elVolumeVal.textContent = volume;
+
+            // 更新音量圖示 (根據變數值，而非僅根據當前節點。但為了教學，我們只在最後才更新圖示？)
+            // 不，題目說「依據音量數值判斷顯示」，這通常是即時的，或者在特定步驟執行。
+            // 我們在進入 'process' 顯示圖示的節點時才更新圖示，比較符合流程圖邏輯。
+            // 但為了讓學生一直看到變數對應的潛在狀態，我們還是即時更新比較好觀察。
+            // *修正*：嚴格按照流程圖，只有執行到 "顯示X格" 時，螢幕上的圖示才會變。
+            // 為了教學清晰，我們在 UI 上保持一個 "預覽" 或在流程圖走到那一步時才真正亮起。
+            // 這裡選擇：隨時更新底層變數顯示，但圖示只在到達特定節點時「確認」顯示。
+            // *再修正*：為了互動性，我們讓圖示一直反映目前的 volume 潛在等級，但用顏色區分「已確認」和「預覽」。
+            // 簡單點：就讓它一直反映 volume 好了，這樣學生能預判。
+            updateVolumeIcons(volume);
+
+            // 更新按鈕狀態
+            if (!isRunning) {
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
+                btnYes.disabled = true;
+                btnNo.disabled = true;
+                return;
+            }
+
+            const node = nodes[currentStepId];
+            btnPrev.disabled = historyStack.length === 0;
+
+            if (node.type === 'decision') {
+                btnNext.disabled = true;
+                btnYes.disabled = false;
+                btnNo.disabled = false;
+                // 高亮提示：可以在這裡作弊讓正確答案閃爍，但我們選擇讓學生思考，選錯再提示。
+            } else if (node.type === 'end') {
+                btnNext.disabled = true;
+                btnYes.disabled = true;
+                btnNo.disabled = true;
+            } else {
+                // start, process
+                btnNext.disabled = false;
+                btnYes.disabled = true;
+                btnNo.disabled = true;
+            }
+        }
+
+        function updateVolumeIcons(vol) {
+            // 先重置所有格子顏色
+            bars.forEach(b => b.className = b.className.replace(/bg-\w+-500/g, 'bg-gray-400'));
+
+            let level = 1;
+            if (vol > 200) level = 5;
+            else if (vol > 150) level = 4;
+            else if (vol > 100) level = 3;
+            else if (vol > 50) level = 2;
+            else level = 1;
+
+            // 根據 level 上色
+            const activeColor = 'bg-green-500';
+             // 特殊處理：滿格時用紅色表示大聲
+            const finalColor = (level === 5) ? 'bg-red-500' : (level >= 3 ? 'bg-yellow-500' : 'bg-green-500');
+
+            for (let i = 0; i < level; i++) {
+                bars[i].className = bars[i].className.replace('bg-gray-400', finalColor);
+            }
+            elIconLabel.textContent = `目前符合：${level} 格音量標準`;
+        }
+
+        function highlightNode(nodeId) {
+            // 清除舊的高亮
+            document.querySelectorAll('.active-node').forEach(el => el.classList.remove('active-node'));
+            // 新增高亮
+            const target = document.getElementById(nodeId);
+            if (target) {
+                // 找到該 group 下的形狀 (rect, polygon, ellipse, circle)
+                const shape = target.querySelector('.node-base');
+                if (shape) shape.classList.add('active-node');
+                // 滾動到可見 (如果圖太大)
+                target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }
+        }
+
+        function setStep(stepId, isBack = false) {
+            if (!isBack && currentStepId) {
+                // 記錄歷史狀態 (Deep copy volume if it was an object, but it's primitive)
+                historyStack.push({ step: currentStepId, vol: volume });
+            }
+
+            currentStepId = stepId;
+            const node = nodes[stepId];
+
+            // 執行節點動作 (如果是前進且有動作)
+            if (!isBack && node.action) {
+                node.action();
+            }
+
+            // 更新畫面
+            highlightNode(stepId);
+            elStepDesc.innerText = node.text;
+
+            // 如果是判斷節點，增加引導文字
+            if (node.type === 'decision') {
+                 elStepDesc.innerText += `\n\n👉 請觀察目前音量 (${volume})，然後點選「是」或「否」。`;
+            }
+
+            updateUI();
+        }
+
+        // --- 按鈕事件處理 ---
+
+        function resetFlow() {
+            isRunning = false;
+            currentStepId = null;
+            historyStack = [];
+            volume = parseInt(document.getElementById('initialVolume').value) || 250;
+            // 清除所有高亮
+            document.querySelectorAll('.active-node').forEach(el => el.classList.remove('active-node'));
+            elStepDesc.innerText = "已重置。請設定初始音量，然後按下「模擬 P1 按下」開始。";
+            updateUI();
+        }
+
+        btnStart.onclick = () => {
+            resetFlow(); // 確保從頭開始
+            isRunning = true;
+            setStep('node_start');
+        };
+
+        btnNext.onclick = () => {
+            if (!currentStepId || !isRunning) return;
+            const node = nodes[currentStepId];
+            if (node.next) {
+                setStep(node.next);
+            }
+        };
+
+        btnPrev.onclick = () => {
+            if (historyStack.length > 0) {
+                const prevState = historyStack.pop();
+                // 如果當前節點有反向動作 (例如加回音量)，需要執行
+                // 但因為我們儲存了完整的歷史狀態 (vol)，直接恢復數值更安全
+                volume = prevState.vol;
+                currentStepId = prevState.step; // 不使用 setStep 避免重複推入歷史
+                
+                // 手動執行 setStep 的 UI 更新部分
+                const node = nodes[currentStepId];
+                highlightNode(currentStepId);
+                elStepDesc.innerText = node.text;
+                if (node.type === 'decision') {
+                     elStepDesc.innerText += `\n\n👉 請觀察目前音量 (${volume})，然後點選「是」或「否」。`;
+                }
+                updateUI();
+            }
+        };
+
+        function handleDecision(userChoiceYes) {
+            if (!currentStepId || !isRunning) return;
+            const node = nodes[currentStepId];
+            if (node.type !== 'decision') return;
+
+            const actualResult = node.condition();
+
+            if (userChoiceYes === actualResult) {
+                // 答對了，前進
+                setStep(actualResult ? node.yes : node.no);
+            } else {
+                // 答錯了，提示
+                const nodeEl = document.getElementById(currentStepId);
+                nodeEl.classList.add('shake-node');
+                setTimeout(() => nodeEl.classList.remove('shake-node'), 500);
+                
+                // 顯示提示訊息
+                const originalText = node.text;
+                elStepDesc.innerText = `💡 等等！再看一次。\n目前音量是 ${volume}。\n\n${originalText}\n\n(提示：${volume} ${actualResult ? '大於' : '不大於'} ${node.text.match(/\d+/)[0]} 喔！)`;
+            }
+        }
+
+        btnYes.onclick = () => handleDecision(true);
+        btnNo.onclick = () => handleDecision(false);
+
+        // 初始化
+        resetFlow();
+
+    </script>
+</body>
+</html>
