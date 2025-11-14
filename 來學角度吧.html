@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動角度學習</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 使用 'Inter' 字體 */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* 讓畫布有更好的觸控體驗 */
+        canvas {
+            touch-action: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-blue-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-5xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-800">來學角度吧！</h1>
+            <p class="text-lg text-gray-700 mt-2">拖動彩色的點點，看看角度有什麼變化？</p>
+        </header>
+
+        <!-- 兩個角度的比較區域 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- 角度 1 (邊比較短) -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">角度 1</h2>
+                <canvas id="angleCanvas1" class="w-full h-64 bg-gray-100 rounded-lg border-2 border-gray-200"></canvas>
+                <p id="angleDisplay1" class="text-center text-3xl font-bold text-blue-700 mt-4">角度：0°</p>
+            </div>
+
+            <!-- 角度 2 (邊比較長) -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold text-center text-purple-700 mb-4">角度 2</h2>
+                
+                <!-- *** 新增滑桿 *** -->
+                <div class="mb-4 px-2">
+                    <label for="lengthSlider" class="block text-sm font-medium text-gray-700">調整邊長：</label>
+                    <input type="range" id="lengthSlider" min="0.3" max="1.0" step="0.05" value="0.7" class="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                </div>
+
+                <canvas id="angleCanvas2" class="w-full h-64 bg-gray-100 rounded-lg border-2 border-gray-200"></canvas>
+                <p id="angleDisplay2" class="text-center text-3xl font-bold text-purple-700 mt-4">角度：0°</p>
+            </div>
+        </div>
+
+        <!-- 老師的小提示 -->
+        <div class="mt-8 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-6 rounded-lg shadow-md">
+            <h3 class="font-bold text-xl mb-2">💡 老師的小提示：</h3>
+            <p class="text-lg">你發現了嗎？「角度 1」的邊比較短，「角度 2」的邊比較長。但是，角度的大小是看「開口」有多大，跟邊邊的長短沒有關係喔！試著把兩個角度調成一樣的度數看看！</p>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            /**
+             * 建立一個可互動的角度畫布
+             * @param {string} canvasId - 畫布的 ID
+             * @param {string} displayId - 顯示角度度數的元素 ID
+             * @param {number} initialSideLengthFactor - 角度邊的 *初始* 長度因子 (相對於畫布寬度)
+             * @param {string} color - 角度的主題顏色
+             */
+            function createAngleInteractor(canvasId, displayId, initialSideLengthFactor, color) {
+                const canvas = document.getElementById(canvasId);
+                const angleDisplay = document.getElementById(displayId);
+                const ctx = canvas.getContext('2d');
+
+                // 處理高DPI螢幕
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.scale(dpr, dpr);
+
+                // 調整畫布內的尺寸
+                const logicalWidth = rect.width;
+                const logicalHeight = rect.height;
+                
+                // *** 修正 ***：將 sideLengthFactor 設為可變動的 let
+                let sideLengthFactor = initialSideLengthFactor;
+                let sideLength = logicalWidth * sideLengthFactor; 
+
+                // 角度的頂點 (放在左下角)
+                const vertex = { x: logicalWidth * 0.2, y: logicalHeight * 0.8 };
+                // 拖曳圓點的半徑
+                const handleRadius = 12;
+                
+                let angle = Math.PI / 3; // 初始角度 (60 度)
+                let isDragging = false;
+                let handle = { x: 0, y: 0 };
+
+                // 繪製所有元素
+                function draw() {
+                    // *** 修正 ***：在每次重繪時都重新計算邊長
+                    sideLength = logicalWidth * sideLengthFactor;
+
+                    // 清除畫布
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // 根據角度計算拖曳點的位置
+                    handle.x = vertex.x + sideLength * Math.cos(-angle); // Y軸反轉，角度也反轉
+                    handle.y = vertex.y + sideLength * Math.sin(-angle);
+
+                    // 1. 繪製靜止的邊 (水平線)
+                    ctx.beginPath();
+                    ctx.moveTo(vertex.x, vertex.y);
+                    ctx.lineTo(vertex.x + sideLength, vertex.y);
+                    ctx.strokeStyle = '#333'; // 黑色
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+
+                    // 2. 繪製可動的邊
+                    ctx.beginPath();
+                    ctx.moveTo(vertex.x, vertex.y);
+                    ctx.lineTo(handle.x, handle.y);
+                    ctx.strokeStyle = color; // 主題色
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+
+                    // 3. 繪製角度弧形
+                    ctx.beginPath();
+                    ctx.moveTo(vertex.x, vertex.y);
+                    ctx.arc(vertex.x, vertex.y, sideLength * 0.4, 0, -angle, true); // 逆時針
+                    ctx.closePath();
+                    ctx.fillStyle = color + '40'; // 帶透明度的主題色
+                    ctx.fill();
+
+                    // 4. 繪製拖曳圓點
+                    ctx.beginPath();
+                    ctx.arc(handle.x, handle.y, handleRadius, 0, 2 * Math.PI);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    ctx.strokeStyle = 'white'; // 白色外框
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    // 更新顯示的度數
+                    let degrees = (angle * 180 / Math.PI).toFixed(0);
+                    angleDisplay.textContent = `角度：${degrees}°`;
+                }
+
+                // 取得滑鼠/觸控在畫布上的相對位置
+                function getPos(evt) {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = logicalWidth / rect.width;
+                    const scaleY = logicalHeight / rect.height;
+
+                    let clientX, clientY;
+                    if (evt.touches) {
+                        clientX = evt.touches[0].clientX;
+                        clientY = evt.touches[0].clientY;
+                    } else {
+                        clientX = evt.clientX;
+                        clientY = evt.clientY;
+                    }
+                    return {
+                        x: (clientX - rect.left) * scaleX,
+                        y: (clientY - rect.top) * scaleY
+                    };
+                }
+
+                // 計算兩點之間的距離
+                function getDistance(p1, p2) {
+                    return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+                }
+
+                // 更新角度
+                function updateAngle(pos) {
+                    if (!pos) return;
+                    // 使用 atan2 計算角度
+                    angle = -Math.atan2(pos.y - vertex.y, pos.x - vertex.x);
+                    
+                    // 限制角度在 1° 到 179° 之間
+                    const minAngle = 0.017; // 約 1 度
+                    const maxAngle = Math.PI - 0.017; // 約 179 度
+                    if (angle < minAngle) angle = minAngle;
+                    if (angle > maxAngle) angle = maxAngle;
+
+                    draw();
+                }
+
+                // --- 事件監聽 ---
+
+                function onStart(evt) {
+                    const pos = getPos(evt);
+                    if (getDistance(pos, handle) <= handleRadius * 1.5) { // 放大觸控範圍
+                        isDragging = true;
+                        canvas.style.cursor = 'grabbing';
+                    }
+                }
+
+                // *** 程式碼修正 ***
+                // 恢復 onMove 函數的正確內容和結構
+                function onMove(evt) {
+                    if (isDragging) {
+                        updateAngle(getPos(evt));
+                    }
+                }
+
+                function onEnd() {
+                    isDragging = false;
+                    canvas.style.cursor = 'pointer';
+                }
+
+                // 滑鼠事件
+                canvas.addEventListener('mousedown', onStart);
+                canvas.addEventListener('mousemove', onMove);
+                canvas.addEventListener('mouseup', onEnd);
+                canvas.addEventListener('mouseleave', onEnd);
+
+                // 觸控事件
+                canvas.addEventListener('touchstart', onStart);
+                canvas.addEventListener('touchmove', onMove);
+                canvas.addEventListener('touchend', onEnd);
+                canvas.addEventListener('touchcancel', onEnd);
+                
+                // 初始繪製
+                draw();
+
+                // *** 程式碼修正 ***
+                // 確保 return 語句在 createAngleInteractor 函數的頂層
+                return {
+                    updateSideLengthFactor: (newFactor) => {
+                        if (newFactor >= 0.3 && newFactor <= 1.0) { // 限制在滑桿範圍內
+                            sideLengthFactor = newFactor;
+                            draw(); // 用新的邊長重新繪製
+                        }
+                    },
+                    getAngle: () => (angle * 180 / Math.PI).toFixed(0)
+                };
+            } // createAngleInteractor 函數的結束大括號
+
+            // 建立 角度 1 (短邊, 藍色)
+            // 這裡不需要儲存回傳值，因為它不會變動
+            createAngleInteractor('angleCanvas1', 'angleDisplay1', 0.4, '#3b82f6');
+
+            // 建立 角度 2 (長邊, 紫色)
+            // *** 修正 ***：儲存回傳的 interactor 物件
+            const angle2Interactor = createAngleInteractor('angleCanvas2', 'angleDisplay2', 0.7, '#8b5cf6');
+            
+            // *** 新增 ***：為滑桿加上事件監聽
+            const slider = document.getElementById('lengthSlider');
+            if (slider) {
+                slider.addEventListener('input', (evt) => {
+                    const newFactor = parseFloat(evt.target.value);
+                    // 呼叫更新函式
+                    angle2Interactor.updateSideLengthFactor(newFactor);
+                });
+            }
+            
+            // 處理視窗大小變化
+            window.addEventListener('resize', () => {
+                 // 簡單地重新載入以重新計算DPR和尺寸
+                 // 在更複雜的應用中，我們會重新計算並重繪
+                window.location.reload();
+            });
+        });
+    </script>
+</body>
+</html>
