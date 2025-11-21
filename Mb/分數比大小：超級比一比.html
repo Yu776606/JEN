@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分數比大小：超級比一比</title>
+    <style>
+        :root {
+            --primary: #4f46e5; /* indigo-600 */
+            --primary-hover: #4338ca; /* indigo-700 */
+            --bg-color: #f8fafc; /* slate-50 */
+            --card-bg: #ffffff;
+            --text-main: #334155; /* slate-700 */
+            --text-sub: #64748b; /* slate-500 */
+            --success: #22c55e; /* green-500 */
+            --error: #ef4444; /* red-500 */
+            --cyan: #22d3ee;
+            --pink: #f472b6;
+            --yellow: #facc15;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 容器與卡片樣式 */
+        .container {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 32px;
+            border: 4px solid #e0e7ff; /* indigo-100 */
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        /* 標題與文字 */
+        h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 10px; }
+        h2 { font-size: 1.8rem; color: var(--text-main); margin-bottom: 1rem; }
+        p { color: var(--text-sub); font-size: 1.1rem; line-height: 1.6; }
+
+        /* 按鈕樣式 */
+        .btn {
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 16px;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: scale(1.02); }
+
+        .btn-option {
+            background: white;
+            border: 2px solid #e0e7ff;
+            color: var(--text-main);
+            font-size: 2.5rem;
+            padding: 1rem;
+            border-radius: 16px;
+        }
+        .btn-option:hover {
+            background-color: #eef2ff;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .btn-next {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            margin-top: 20px;
+        }
+
+        /* 分數顯示區域 */
+        .fraction-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .fraction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+        }
+        
+        .num, .denom {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--text-main);
+            font-family: monospace;
+            line-height: 1;
+        }
+        
+        .fraction-line {
+            width: 100%;
+            height: 4px;
+            background-color: var(--text-main);
+            border-radius: 2px;
+            margin: 8px 0;
+        }
+
+        .compare-box {
+            width: 80px;
+            height: 80px;
+            background-color: #f1f5f9;
+            border: 3px dashed #cbd5e1;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #94a3b8;
+        }
+
+        .compare-box.correct { color: var(--success); border-color: var(--success); border-style: solid; background: #dcfce7; }
+        .compare-box.wrong { color: var(--error); border-color: var(--error); border-style: solid; background: #fee2e2; }
+
+        /* 選項網格 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* 解析區域 */
+        .explanation-area {
+            margin-top: 2rem;
+            text-align: left;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .feedback-msg {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .feedback-correct { background-color: #dcfce7; color: #166534; }
+        .feedback-wrong { background-color: #fee2e2; color: #991b1b; }
+
+        .methods-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .methods-container { grid-template-columns: 1fr 1fr; }
+        }
+
+        .method-card {
+            padding: 1.5rem;
+            border-radius: 16px;
+            position: relative;
+        }
+        .method-card.white { background: white; border: 1px solid #e2e8f0; }
+        .method-card.dark { background: #0f172a; color: white; overflow: hidden; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-pink { background: var(--pink); color: white; }
+
+        /* SVG 蝴蝶動畫 */
+        .butterfly-container {
+            position: relative;
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1rem;
+            user-select: none;
+        }
+        
+        .svg-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .butterfly-nums {
+            display: flex;
+            gap: 3rem;
+            position: relative;
+            z-index: 10;
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .fly-num { display: flex; flex-direction: column; align-items: center; }
+        .fly-num .line { width: 2rem; height: 2px; background: white; margin: 2px 0; }
+        
+        .product-float {
+            position: absolute;
+            top: 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: bounce 2s infinite;
+        }
+        .prod-left { left: 10%; color: var(--cyan); }
+        .prod-right { right: 10%; color: var(--pink); animation-delay: 0.1s; }
+
+        /* 進度條與頭部 */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-sub);
+        }
+        .progress-dots { display: flex; gap: 4px; }
+        .dot { width: 30px; height: 8px; border-radius: 4px; background: #e2e8f0; }
+        .dot.active { background: var(--primary); }
+        .dot.past { background: #818cf8; }
+
+        /* 隱藏元素 */
+        .hidden { display: none !important; }
+
+        /* 動畫 */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
+            50% { transform: none; animation-timing-function: cubic-bezier(0,0,0.2,1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- 1. 開始畫面 -->
+        <div id="startScreen" class="card">
+            <div style="margin-bottom: 2rem;">
+                <div style="background:#e0e7ff; width: 80px; height: 80px; border-radius: 50%; display:flex; align-items:center; justify-content:center; margin:0 auto;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                        <line x1="8" y1="6" x2="16" y2="6"></line>
+                        <line x1="16" y1="14" x2="16" y2="18"></line>
+                        <path d="M16 10h.01"></path>
+                        <path d="M12 10h.01"></path>
+                        <path d="M8 10h.01"></path>
+                        <path d="M12 14h.01"></path>
+                        <path d="M8 14h.01"></path>
+                        <path d="M12 18h.01"></path>
+                        <path d="M8 18h.01"></path>
+                    </svg>
+                </div>
+            </div>
+            <h1>分數比大小挑戰</h1>
+            <p style="margin-bottom: 2rem;">共有 4 題挑戰。<br>每題都附有「傳統通分」與「數形結合蝴蝶法」兩種解說喔！</p>
+            <button class="btn btn-primary" onclick="game.init()">
+                ✨ 開始挑戰
+            </button>
+        </div>
+
+        <!-- 2. 遊戲畫面 -->
+        <div id="gameScreen" class="hidden">
+            <div class="header-bar">
+                <div>第 <span id="qIndex" style="color:var(--primary); font-weight:bold; font-size:1.2rem;">1</span> / 4 題</div>
+                <div class="progress-dots" id="progressDots">
+                    <!-- dots generated by js -->
+                </div>
+                <div>得分: <span id="scoreDisplay">0</span></div>
+            </div>
+
+            <div class="card">
+                <div style="min-height: 300px; display: flex; flex-direction: column; justify-content: center;">
+                    
+                    <!-- 題目顯示 -->
+                    <div class="fraction-display">
+                        <div class="fraction">
+                            <span class="num" id="n1">3</span>
+                            <div class="fraction-line"></div>
+                            <span class="denom" id="d1">4</span>
+                        </div>
+
+                        <div class="compare-box" id="compareBox">?</div>
+
+                        <div class="fraction">
+                            <span class="num" id="n2">5</span>
+                            <div class="fraction-line"></div>
+                            <span class="denom" id="d2">6</span>
+                        </div>
+                    </div>
+
+                    <!-- 作答按鈕 -->
+                    <div id="optionsArea" class="options-grid">
+                        <button class="btn btn-option" onclick="game.answer('>')">&gt;</button>
+                        <button class="btn btn-option" onclick="game.answer('=')">=</button>
+                        <button class="btn btn-option" onclick="game.answer('<')">&lt;</button>
+                    </div>
+
+                    <!-- 解析區域 -->
+                    <div id="explanationArea" class="explanation-area hidden">
+                        <div id="feedbackMsg" class="feedback-msg"></div>
+
+                        <h3 style="margin-bottom: 1rem;">📖 解題雙響炮</h3>
+                        
+                        <div class="methods-container">
+                            <!-- 方法一：通分 -->
+                            <div class="method-card white">
+                                <div style="margin-bottom: 0.5rem;">
+                                    <span class="badge badge-blue">方法一</span>
+                                    <strong>傳統通分法</strong>
+                                </div>
+                                <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+                                    最小公倍數 (LCM)：<span id="lcmVal" style="color:var(--primary); font-weight:bold; font-family:monospace;">12</span>
+                                </p>
+                                <div style="display:flex; justify-content:space-around; align-items:center; font-family:monospace; color:#334155;">
+                                    <div style="text-align:center;">
+                                        <div id="exp1-left-calc">3 × 3</div>
+                                        <div style="height:1px; background:#94a3b8; margin:2px 0;"></div>
+                                        <div id="exp1-left-denom">4 × 3</div>
+                                        <div id="exp1-left-res" style="color:var(--primary); font-weight:bold; margin-top:4px;">= 9/12</div>
+                                    </div>
+                                    <div style="color:#cbd5e1;">vs</div>
+                                    <div style="text-align:center;">
+                                        <div id="exp1-right-calc">5 × 2</div>
+                                        <div style="height:1px; background:#94a3b8; margin:2px 0;"></div>
+                                        <div id="exp1-right-denom">6 × 2</div>
+                                        <div id="exp1-right-res" style="color:var(--primary); font-weight:bold; margin-top:4px;">= 10/12</div>
+                                    </div>
+                                </div>
+                                <p style="text-align:center; margin-top: 1rem; font-size:0.9rem;">
+                                    所以答案是 <strong id="exp1-ans" style="font-size:1.2rem;">&lt;</strong>
+                                </p>
+                            </div>
+
+                            <!-- 方法二：蝴蝶 -->
+                            <div class="method-card dark">
+                                <div style="margin-bottom: 0.5rem; position:relative; z-index:20;">
+                                    <span class="badge badge-pink">方法二</span>
+                                    <strong>蝴蝶交叉速解法</strong>
+                                </div>
+
+                                <div class="butterfly-container">
+                                    <!-- 乘積結果 -->
+                                    <div id="bf-prod-left" class="product-float prod-left">18</div>
+                                    <div id="bf-prod-right" class="product-float prod-right">20</div>
+
+                                    <!-- SVG 線條 -->
+                                    <svg class="svg-bg" viewBox="0 0 300 150">
+                                        <!-- Cyan Loop (TopLeft to BottomRight) -->
+                                        <ellipse cx="150" cy="80" rx="120" ry="30" fill="none" stroke="#22d3ee" stroke-width="3" transform="rotate(25 150 80)" opacity="0.8" />
+                                        <!-- Pink Loop (TopRight to BottomLeft) -->
+                                        <ellipse cx="150" cy="80" rx="120" ry="30" fill="none" stroke="#f472b6" stroke-width="3" transform="rotate(-25 150 80)" opacity="0.8" />
+                                    </svg>
+
+                                    <!-- 數字 -->
+                                    <div class="butterfly-nums">
+                                        <div class="fly-num">
+                                            <span id="bf-n1" style="color:var(--cyan);">3</span>
+                                            <div class="line"></div>
+                                            <span id="bf-d1" style="color:var(--pink);">4</span>
+                                        </div>
+                                        <div id="bf-sign" style="display:flex; align-items:center; color:var(--yellow); font-size:2rem;">&lt;</div>
+                                        <div class="fly-num">
+                                            <span id="bf-n2" style="color:var(--pink);">5</span>
+                                            <div class="line"></div>
+                                            <span id="bf-d2" style="color:var(--cyan);">6</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="text-align:center; font-size:0.8rem; color:#94a3b8; margin-top:10px;">
+                                    <span style="color:var(--cyan);" id="txt-n1">3</span> × <span style="color:var(--cyan);" id="txt-d2">6</span> = <span id="txt-p1">18</span> 
+                                    <span style="margin:0 8px;">vs</span>
+                                    <span style="color:var(--pink);" id="txt-n2">5</span> × <span style="color:var(--pink);" id="txt-d1">4</span> = <span id="txt-p2">20</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button id="nextBtn" class="btn btn-next" onclick="game.next()">
+                                下一題 ➜
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 結算畫面 -->
+        <div id="resultScreen" class="card hidden">
+            <h2 style="margin-bottom:1rem;">挑戰完成！</h2>
+            <div id="resultEmoji" style="font-size: 5rem; margin-bottom: 1rem;">🌟</div>
+            <p style="font-size: 1.5rem; margin-bottom: 2rem;">
+                你答對了 <span id="finalScore" style="color:var(--primary); font-weight:bold; font-size:2rem;">0</span> / 4 題
+            </p>
+            <button class="btn btn-primary" onclick="game.init()">
+                ↺ 再玩一次
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // 數學工具函式
+        const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+        const lcm = (a, b) => (a * b) / gcd(a, b);
+
+        const game = {
+            questions: [],
+            currentIndex: 0,
+            score: 0,
+            currentQ: null,
+
+            // 初始化遊戲
+            init: function() {
+                this.score = 0;
+                this.currentIndex = 0;
+                this.questions = [];
+                
+                // 生成 4 個題目
+                for(let i=0; i<4; i++) {
+                    this.questions.push(this.generateQuestion());
+                }
+
+                // 切換畫面
+                document.getElementById('startScreen').classList.add('hidden');
+                document.getElementById('resultScreen').classList.add('hidden');
+                document.getElementById('gameScreen').classList.remove('hidden');
+                
+                this.renderQuestion();
+            },
+
+            // 生成題目邏輯
+            generateQuestion: function() {
+                let d1 = Math.floor(Math.random() * 9) + 2; // 2-10
+                let d2 = Math.floor(Math.random() * 9) + 2;
+                while (d1 === d2) d2 = Math.floor(Math.random() * 9) + 2;
+
+                let n1 = Math.floor(Math.random() * (d1 - 1)) + 1;
+                let n2 = Math.floor(Math.random() * (d2 - 1)) + 1;
+
+                const val1 = n1 / d1;
+                const val2 = n2 / d2;
+                let correctSign = '=';
+                if (val1 > val2) correctSign = '>';
+                if (val1 < val2) correctSign = '<';
+
+                return { n1, d1, n2, d2, correctSign };
+            },
+
+            // 渲染題目介面
+            renderQuestion: function() {
+                this.currentQ = this.questions[this.currentIndex];
+                const q = this.currentQ;
+
+                // 更新 UI 文字
+                document.getElementById('qIndex').innerText = this.currentIndex + 1;
+                document.getElementById('scoreDisplay').innerText = this.score;
+                
+                document.getElementById('n1').innerText = q.n1;
+                document.getElementById('d1').innerText = q.d1;
+                document.getElementById('n2').innerText = q.n2;
+                document.getElementById('d2').innerText = q.d2;
+
+                // 重置狀態
+                document.getElementById('compareBox').className = 'compare-box';
+                document.getElementById('compareBox').innerText = '?';
+                document.getElementById('optionsArea').classList.remove('hidden');
+                document.getElementById('explanationArea').classList.add('hidden');
+
+                // 更新進度點
+                const dotsContainer = document.getElementById('progressDots');
+                dotsContainer.innerHTML = '';
+                for(let i=0; i<4; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = `dot ${i < this.currentIndex ? 'past' : (i === this.currentIndex ? 'active' : '')}`;
+                    dotsContainer.appendChild(dot);
+                }
+
+                // 按鈕文字
+                document.getElementById('nextBtn').innerText = (this.currentIndex < 3) ? '下一題 ➜' : '看結果 ➜';
+            },
+
+            // 處理回答
+            answer: function(userSign) {
+                const q = this.currentQ;
+                const isCorrect = (userSign === q.correctSign);
+
+                if (isCorrect) this.score++;
+
+                // 更新 UI 顯示結果
+                const box = document.getElementById('compareBox');
+                box.innerText = userSign;
+                box.classList.add(isCorrect ? 'correct' : 'wrong');
+
+                // 顯示回饋訊息
+                const feedback = document.getElementById('feedbackMsg');
+                feedback.className = `feedback-msg ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`;
+                feedback.innerHTML = isCorrect 
+                    ? '✓ 答對了！太棒了！' 
+                    : '✗ 哎呀，答錯了，來看看解說吧！';
+
+                // 隱藏按鈕，顯示解析
+                document.getElementById('optionsArea').classList.add('hidden');
+                document.getElementById('explanationArea').classList.remove('hidden');
+                document.getElementById('scoreDisplay').innerText = this.score;
+
+                this.renderExplanation();
+            },
+
+            // 渲染解析內容
+            renderExplanation: function() {
+                const q = this.currentQ;
+                
+                // --- 方法一：通分 ---
+                const commonDenom = lcm(q.d1, q.d2);
+                const newN1 = q.n1 * (commonDenom / q.d1);
+                const newN2 = q.n2 * (commonDenom / q.d2);
+
+                document.getElementById('lcmVal').innerText = commonDenom;
+                document.getElementById('exp1-left-calc').innerText = `${q.n1} × ${commonDenom/q.d1}`;
+                document.getElementById('exp1-left-denom').innerText = `${q.d1} × ${commonDenom/q.d1}`;
+                document.getElementById('exp1-left-res').innerText = `= ${newN1}/${commonDenom}`;
+
+                document.getElementById('exp1-right-calc').innerText = `${q.n2} × ${commonDenom/q.d2}`;
+                document.getElementById('exp1-right-denom').innerText = `${q.d2} × ${commonDenom/q.d2}`;
+                document.getElementById('exp1-right-res').innerText = `= ${newN2}/${commonDenom}`;
+                
+                document.getElementById('exp1-ans').innerText = q.correctSign;
+
+                // --- 方法二：蝴蝶 (數形結合) ---
+                const leftProd = q.n1 * q.d2;
+                const rightProd = q.n2 * q.d1;
+
+                // 左上方數字
+                document.getElementById('bf-prod-left').innerText = leftProd;
+                // 右上方數字
+                document.getElementById('bf-prod-right').innerText = rightProd;
+
+                // 蝴蝶本體數字
+                document.getElementById('bf-n1').innerText = q.n1;
+                document.getElementById('bf-d1').innerText = q.d1;
+                document.getElementById('bf-n2').innerText = q.n2;
+                document.getElementById('bf-d2').innerText = q.d2;
+                document.getElementById('bf-sign').innerText = q.correctSign;
+
+                // 底部文字說明
+                document.getElementById('txt-n1').innerText = q.n1;
+                document.getElementById('txt-d2').innerText = q.d2;
+                document.getElementById('txt-p1').innerText = leftProd;
+                document.getElementById('txt-n2').innerText = q.n2;
+                document.getElementById('txt-d1').innerText = q.d1;
+                document.getElementById('txt-p2').innerText = rightProd;
+            },
+
+            // 下一題或結算
+            next: function() {
+                if (this.currentIndex < 3) {
+                    this.currentIndex++;
+                    this.renderQuestion();
+                } else {
+                    this.showResult();
+                }
+            },
+
+            showResult: function() {
+                document.getElementById('gameScreen').classList.add('hidden');
+                document.getElementById('resultScreen').classList.remove('hidden');
+                document.getElementById('finalScore').innerText = this.score;
+                
+                let emoji = '💪';
+                if (this.score === 4) emoji = '🏆';
+                else if (this.score >= 2) emoji = '🌟';
+                document.getElementById('resultEmoji').innerText = emoji;
+            }
+        };
+    </script>
+</body>
+</html>
