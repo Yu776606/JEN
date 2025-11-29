@@ -1600,7 +1600,7 @@
 
             try {
                 const apiKey = geminiApiKey;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 const systemPrompt = `You are an English teacher creating a fill-in-the-blank quiz for 13-15 year old students in Taiwan. Your response MUST be a single, valid JSON object without any markdown formatting.`;
                 
                 const posInfo = word.partOfSpeech ? ` (part of speech: ${word.partOfSpeech})` : '';
@@ -2300,4 +2300,5 @@ Example response:
     </script>
 </body>
 </html>
+
 
