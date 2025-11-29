@@ -1600,7 +1600,7 @@
 
             try {
                 const apiKey = geminiApiKey;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = `You are an English teacher creating a fill-in-the-blank quiz for 13-15 year old students in Taiwan. Your response MUST be a single, valid JSON object without any markdown formatting.`;
                 
                 const posInfo = word.partOfSpeech ? ` (part of speech: ${word.partOfSpeech})` : '';
@@ -1694,7 +1694,7 @@
 
             try {
                 const apiKey = geminiApiKey;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 const systemPrompt = "You are a helpful English teacher's assistant providing hints to students in Taiwan. Respond only with the hint text, in Traditional Chinese.";
                 const userQuery = `A student is stuck on this fill-in-the-blank question: "${clozeSentenceEl.innerHTML.replace(/<[^>]*>/g, '_________')}"
         The correct answer is "${currentClozeWordInfo.blankWord}".
@@ -1885,7 +1885,7 @@
             }
             try {
                 const apiKey = geminiApiKey;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 
                 const systemPrompt = `You are an English linguistic analyst. Your task is to provide detailed information for a given English word and its example sentence. You MUST respond with a single, valid JSON object without any markdown formatting. The verb in the sentence must be correctly identified.`;
 
@@ -2048,7 +2048,7 @@ Example response:
 
             try {
                 const apiKey = geminiApiKey; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 const systemPrompt = `You are an English learning assistant. For a given word, you must provide details in a specific JSON format. The example sentence must be suitable for a 13-15 year old student and must contain the given word.`;
                 
                 const posInstruction = partOfSpeech ? ` used as a "${partOfSpeech}"` : '';
@@ -2300,3 +2300,4 @@ Example response:
     </script>
 </body>
 </html>
+
