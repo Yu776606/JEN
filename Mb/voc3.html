@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動單字卡 - 學習管理系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PapaParse for CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .lexend { font-family: 'Lexend', sans-serif; }
+        .flip-card { perspective: 1000px; }
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flip-card.is-flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .flip-card-back { transform: rotateY(180deg); }
+        .phonetic { color: #6b7280; font-size: 0.9em; font-family: 'Arial', sans-serif; }
+        /* 背面標題顏色 */
+        .content-label { color: #4f46e5; font-weight: bold; }
+        /* 不規則動詞三態顏色 */
+        .irregular-verb { color: #ef4444; font-weight: bold; }
+        /* 一般內容文字顏色 */
+        .content-text { color: #1f2937; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm mb-8">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-indigo-600 flex items-center">
+                <span class="mr-2">📖</span> 單字翻頁卡牌
+            </h1>
+            <div class="space-x-4">
+                <button onclick="window.switchTab('study')" id="btn-study" class="text-indigo-600 font-medium">學習模式</button>
+                <button onclick="window.switchTab('admin')" id="btn-admin" class="text-gray-500 hover:text-indigo-600 font-medium">管理後台</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 pb-20">
+        
+        <!-- Tab: Study Mode -->
+        <div id="tab-study">
+            <!-- Filter & Stats -->
+            <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">選擇分類：</label>
+                    <select id="category-filter" onchange="window.filterByCategory()" class="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 py-1">
+                        <option value="all">全部單字</option>
+                    </select>
+                </div>
+                <div class="text-sm text-gray-500">
+                    進度: <span id="current-index-display">0</span> / <span id="total-count-display">0</span>
+                </div>
+            </div>
+
+            <!-- Card Display -->
+            <div id="card-container" class="relative h-96 w-full max-w-md mx-auto mb-12 flip-card">
+                <div class="flip-card-inner relative w-full h-full shadow-xl rounded-2xl bg-white border border-gray-100" onclick="window.toggleFlip()">
+                    <!-- Front -->
+                    <div class="flip-card-front flex flex-col items-center justify-center p-8 text-center">
+                        <div id="word-front" class="lexend text-4xl font-bold text-gray-800 mb-2">請設定 Firebase</div>
+                        <div id="phonetic-front" class="phonetic mb-4"></div>
+                        <button onclick="window.speakText(event, 'word')" class="p-3 bg-indigo-50 rounded-full hover:bg-indigo-100 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Back -->
+                    <div class="flip-card-back flex flex-col p-6 overflow-y-auto">
+                        <div id="definition-back" class="leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+                            解釋將顯示在這裡...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-center items-center space-x-6">
+                <button onclick="window.prevCard()" class="p-4 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 disabled:opacity-30" id="btn-prev">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button onclick="window.shuffleCards()" class="text-sm font-medium text-indigo-600 hover:underline">隨機洗牌</button>
+                <button onclick="window.nextCard()" class="p-4 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 disabled:opacity-30" id="btn-next">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab: Admin Mode -->
+        <div id="tab-admin" class="hidden">
+            <div id="admin-login" class="max-w-sm mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-100">
+                <h2 class="text-lg font-bold mb-4">管理者登入</h2>
+                <input type="password" id="admin-password" placeholder="請輸入密碼" class="w-full border-gray-300 rounded-md mb-4 px-4 py-2 border">
+                <button onclick="window.handleLogin()" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700">確認登入</button>
+            </div>
+
+            <div id="admin-content" class="hidden space-y-8">
+                <!-- Upload Section -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-bold mb-4">匯入單字 (CSV)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">自訂分類名稱</label>
+                            <input type="text" id="upload-category" placeholder="例如：114下U1" class="w-full border-gray-300 rounded-md px-4 py-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">選擇檔案</label>
+                            <input type="file" id="csv-file" accept=".csv" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        </div>
+                    </div>
+                    <button onclick="window.handleUpload()" id="btn-upload" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 flex items-center justify-center">
+                        開始上傳
+                    </button>
+                </div>
+
+                <!-- Database List -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                        <h2 class="text-lg font-bold">目前資料庫單字</h2>
+                        <div class="space-x-3">
+                            <button onclick="window.clearAllData()" class="text-xs text-red-500 hover:underline">清空所有單字</button>
+                        </div>
+                    </div>
+                    <!-- 分類操作區 -->
+                    <div id="category-actions" class="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-wrap gap-4 items-center">
+                        <span class="text-sm font-bold text-indigo-700">批次操作：</span>
+                        <select id="batch-category-select" class="text-sm border-gray-300 rounded px-2 py-1">
+                            <option value="">請選擇分類</option>
+                        </select>
+                        <button onclick="window.renameCategory()" class="text-xs bg-white border border-indigo-300 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-100">修改分類名稱</button>
+                        <button onclick="window.deleteEntireCategory()" class="text-xs bg-red-50 border border-red-200 text-red-600 px-3 py-1 rounded hover:bg-red-100">刪除整個分類</button>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3">分類</th>
+                                    <th class="px-4 py-3">單字</th>
+                                    <th class="px-4 py-3 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vocab-table-body" class="text-sm divide-y divide-gray-100">
+                                <!-- Data rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        // --- Firebase Config (填入您的資訊) ---
+        const firebaseConfig = {
+           apiKey: "AIzaSyAcMaI90tyMreYdkKVrJgIvd67uXLqRMWo",
+  authDomain: "my-vocab-app-3a040.firebaseapp.com",
+  projectId: "my-vocab-app-3a040",
+  storageBucket: "my-vocab-app-3a040.firebasestorage.app",
+  messagingSenderId: "623693271315",
+  appId: "1:623693271315:web:17c224368a67c568088ae6",
+  measurementId: "G-04RW28SGRH"
+        };
+
+        const isFirebaseConfigured = firebaseConfig.apiKey !== "";
+        let app, db, auth;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'vocab-learner-v2';
+
+        // --- State ---
+        let allVocabs = [];
+        let filteredVocabs = [];
+        let currentIndex = 0;
+        let categories = new Set();
+
+        // --- Initialization ---
+        window.addEventListener('load', async () => {
+            if (!isFirebaseConfigured) return;
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                await signInAnonymously(auth);
+                loadData();
+            } catch (error) { console.error(error); }
+        });
+
+        function loadData() {
+            const vocabCol = collection(db, 'artifacts', appId, 'public', 'data', 'vocabulary');
+            onSnapshot(vocabCol, (snapshot) => {
+                // 將資料抓出來後，根據上傳時的順序 (order) 進行排序
+                allVocabs = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                categories = new Set(allVocabs.map(v => v.category));
+                updateCategoryDropdowns();
+                window.filterByCategory();
+                updateAdminTable();
+            });
+        }
+
+        function updateCategoryDropdowns() {
+            const studySelect = document.getElementById('category-filter');
+            const batchSelect = document.getElementById('batch-category-select');
+            const studyVal = studySelect.value;
+            
+            const sortedCats = Array.from(categories).sort();
+            const optionsHtml = '<option value="all">全部單字</option>' + 
+                sortedCats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            
+            const batchHtml = '<option value="">請選擇分類</option>' + 
+                sortedCats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+
+            studySelect.innerHTML = optionsHtml;
+            batchSelect.innerHTML = batchHtml;
+            studySelect.value = studyVal || "all";
+        }
+
+        // --- Core Functions ---
+        window.switchTab = (tab) => {
+            document.getElementById('tab-study').classList.toggle('hidden', tab !== 'study');
+            document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
+            document.getElementById('btn-study').classList.toggle('text-indigo-600', tab === 'study');
+            document.getElementById('btn-admin').classList.toggle('text-indigo-600', tab === 'admin');
+        };
+
+        window.filterByCategory = () => {
+            const filterValue = document.getElementById('category-filter').value;
+            // 過濾後依然保持 allVocabs 的原始排序
+            filteredVocabs = filterValue === 'all' ? allVocabs : allVocabs.filter(v => v.category === filterValue);
+            currentIndex = 0;
+            renderCard();
+        };
+
+        window.renderCard = () => {
+            const wordDisplay = document.getElementById('word-front');
+            const phoneticDisplay = document.getElementById('phonetic-front');
+            const defDisplay = document.getElementById('definition-back');
+            
+            document.getElementById('card-container').classList.remove('is-flipped');
+
+            if (filteredVocabs.length === 0) {
+                wordDisplay.textContent = "尚無資料";
+                phoneticDisplay.textContent = "";
+                defDisplay.innerHTML = "請上傳 CSV 或選擇分類。";
+                return;
+            }
+
+            const item = filteredVocabs[currentIndex];
+            document.getElementById('total-count-display').textContent = filteredVocabs.length;
+            document.getElementById('current-index-display').textContent = currentIndex + 1;
+
+            const wordData = parsePhonetic(item.word);
+            wordDisplay.textContent = wordData.text;
+            phoneticDisplay.textContent = wordData.phonetic ? `[${wordData.phonetic}]` : "";
+            defDisplay.innerHTML = formatBackContent(item.definition);
+        };
+
+        function parsePhonetic(rawText) {
+            const match = rawText.match(/\[(.*?)\]/);
+            return {
+                text: rawText.replace(/\[.*?\]/g, "").trim(),
+                phonetic: match ? match[1] : ""
+            };
+        }
+
+        function formatBackContent(text) {
+            let lines = text.split('\n');
+            let html = lines.map(line => {
+                let processedLine = line.trim();
+                let isIrregular = processedLine.includes('【不規則動詞三態】');
+                
+                // 標題顏色化
+                processedLine = processedLine.replace(/(【.*?】)/g, '<span class="content-label">$1</span>');
+                // 音標顏色化
+                processedLine = processedLine.replace(/\[(.*?)\]/g, '<span class="phonetic bg-gray-100 px-1 rounded">[$1]</span>');
+                
+                // 判斷整行樣式與發音按鈕
+                if (isIrregular) {
+                    const speechText = line.replace(/【.*?】/g, '').replace(/\[.*?\]/g, '').trim();
+                    return `<div class="flex items-center justify-between irregular-verb py-1">
+                        <span>${processedLine}</span>
+                        <button onclick="window.speakText(event, \`${speechText}\`)" class="p-1 text-red-400 hover:text-red-600">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        </button>
+                    </div>`;
+                } else if (processedLine.includes('【例句】')) {
+                    // 擷取【例句】標籤後的文字，並在遇到第一個左括號 ( 即中文翻譯處 ) 停止
+                    let speechPart = line.split('【例句】')[1] || "";
+                    let cleanSpeechText = speechPart.split('(')[0].replace(/\[.*?\]/g, '').trim();
+
+                    return `<div class="flex items-start justify-between content-text py-1 group">
+                        <span>${processedLine}</span>
+                        <button onclick="window.speakText(event, \`${cleanSpeechText.replace(/'/g, "\\'")}\`)" class="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        </button>
+                    </div>`;
+                }
+                return `<div class="content-text py-0.5">${processedLine}</div>`;
+            }).join('');
+            return html;
+        }
+
+        window.speakText = (event, modeOrText) => {
+            event.stopPropagation();
+            let textToSpeak = "";
+            if (modeOrText === 'word') {
+                if (filteredVocabs.length === 0) return;
+                // 正面單字：過濾掉詞性
+                textToSpeak = parsePhonetic(filteredVocabs[currentIndex].word).text.replace(/\s*\(.*?\)/g, "").trim();
+            } else {
+                textToSpeak = modeOrText;
+            }
+            if (!textToSpeak) return;
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            speechSynthesis.speak(utterance);
+        };
+
+        // --- Admin Actions ---
+        window.handleLogin = () => {
+            if (document.getElementById('admin-password').value === 'admin123') {
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+            } else alert("密碼錯誤");
+        };
+
+        window.handleUpload = () => {
+            const fileInput = document.getElementById('csv-file');
+            const category = document.getElementById('upload-category').value.trim() || "未命名分類";
+            if (!fileInput.files.length) return alert("請選擇檔案");
+
+            const uploadBtn = document.getElementById('btn-upload');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = "上傳中...";
+
+            Papa.parse(fileInput.files[0], {
+                complete: async (results) => {
+                    // 使用當前時間戳記作為起始順序，確保匯入時順序固定
+                    let baseOrder = Date.now();
+                    let successCount = 0;
+
+                    for (let i = 0; i < results.data.length; i++) {
+                        const row = results.data[i];
+                        if (row.length >= 2) {
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'vocabulary'), {
+                                word: row[0].trim(),
+                                definition: row[1].trim(),
+                                category: category,
+                                order: baseOrder + i, // 加上索引值確保順序
+                                createdAt: serverTimestamp()
+                            });
+                            successCount++;
+                        }
+                    }
+                    alert(`上傳成功，共新增 ${successCount} 個單字。`);
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = "開始上傳";
+                    fileInput.value = "";
+                }
+            });
+        };
+
+        window.deleteVocab = async (id) => {
+            if (confirm("刪除此單字？")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'vocabulary', id));
+        };
+
+        window.clearAllData = async () => {
+            if (confirm("確定刪除所有單字？")) {
+                for (let v of allVocabs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'vocabulary', v.id));
+            }
+        };
+
+        window.deleteEntireCategory = async () => {
+            const cat = document.getElementById('batch-category-select').value;
+            if (!cat) return alert("請選擇分類");
+            if (confirm(`確定刪除「${cat}」分類下的所有單字？`)) {
+                const targets = allVocabs.filter(v => v.category === cat);
+                for (let v of targets) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'vocabulary', v.id));
+                alert("刪除完畢");
+            }
+        };
+
+        window.renameCategory = async () => {
+            const oldCat = document.getElementById('batch-category-select').value;
+            if (!oldCat) return alert("請選擇分類");
+            const newName = prompt(`將分類「${oldCat}」重新命名為：`, oldCat);
+            if (newName && newName !== oldCat) {
+                const targets = allVocabs.filter(v => v.category === oldCat);
+                for (let v of targets) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'vocabulary', v.id);
+                    await updateDoc(docRef, { category: newName });
+                }
+                alert("分類更名成功");
+            }
+        };
+
+        window.nextCard = () => { if (currentIndex < filteredVocabs.length - 1) { currentIndex++; renderCard(); } };
+        window.prevCard = () => { if (currentIndex > 0) { currentIndex--; renderCard(); } };
+        window.shuffleCards = () => { 
+            filteredVocabs.sort(() => Math.random() - 0.5); 
+            currentIndex = 0; 
+            renderCard(); 
+        };
+        window.toggleFlip = () => document.getElementById('card-container').classList.toggle('is-flipped');
+
+        function updateAdminTable() {
+            const tbody = document.getElementById('vocab-table-body');
+            tbody.innerHTML = allVocabs.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2 font-medium text-indigo-600 text-xs">${item.category}</td>
+                    <td class="px-4 py-2">${item.word}</td>
+                    <td class="px-4 py-2 text-right">
+                        <button onclick="window.deleteVocab('${item.id}')" class="text-red-400 hover:text-red-600">刪除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
