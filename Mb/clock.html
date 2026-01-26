@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>七年級寒假戰鬥計畫 (1/26-2/15)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        /* Custom Scrollbar */
+        .scroller::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .scroller::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .scroller::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .scroller::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .goal-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .goal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .completed-row {
+            background-color: #ecfdf5 !important; /* green-50 */
+        }
+        .completed-row input[type="text"] {
+            color: #065f46; /* green-800 */
+            text-decoration: line-through;
+        }
+        
+        /* Pomodoro Animation */
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .timer-active {
+            animation: pulse-red 2s infinite;
+            border-color: #ef4444 !important;
+        }
+
+        /* Stock Ticker Animation */
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            background-color: #1e293b;
+            color: white;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .ticker {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 30s linear infinite;
+        }
+        .ticker__item {
+            display: inline-block;
+            padding: 0 2rem;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+        .up { color: #4ade80; } /* Green for up */
+        .down { color: #f87171; } /* Red for down/warning */
+    </style>
+</head>
+<body class="text-gray-800 flex flex-col min-h-screen">
+
+    <!-- Stock Market Style Ticker -->
+    <div class="ticker-wrap py-2 border-b border-gray-700">
+        <div class="ticker">
+            <div class="ticker__item">今日學習指數 <span class="up">▲ 150.2</span></div>
+            <div class="ticker__item">專注力期貨 <span class="up">▲ 45分鐘</span></div>
+            <div class="ticker__item">粗心率 <span class="down">▼ 0.5% (目標: 0%)</span></div>
+            <div class="ticker__item">英文單字庫存 <span class="up">▲ 累積中</span></div>
+            <div class="ticker__item">手機干擾 <span class="down">▼ 強力賣出</span></div>
+            <div class="ticker__item">體能儲備 <span class="up">▲ 穩定持倉</span></div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto p-4 md:p-6 flex-grow w-full">
+        
+        <!-- Header & Date Picker -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-5 rounded-xl shadow-md border border-gray-100">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight flex items-center">
+                    <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+                    七年級寒假戰鬥計畫
+                </h1>
+                <p class="text-gray-500 text-sm mt-1 ml-1">投資大腦是回報率最高的交易 | 交易區間: 01/26 - 02/15</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center bg-slate-100 p-2 rounded-lg border border-slate-200">
+                <label for="planDate" class="mr-3 font-bold text-slate-700"><i class="far fa-calendar-alt mr-1"></i>交易日期：</label>
+                <input type="date" id="planDate" class="bg-white border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-bold">
+            </div>
+        </header>
+
+        <!-- 5 Core Goals (Sticky/Top) -->
+        <section id="goals" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <!-- 責任心 -->
+            <div class="goal-card bg-white border-t-4 border-blue-500 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2 justify-between">
+                    <h3 class="text-lg font-black text-gray-800">責任心</h3>
+                    <i class="fas fa-user-tie text-blue-500 text-xl"></i>
+                </div>
+                <p class="text-xs text-gray-600 font-bold leading-relaxed">承擔學生本職，每天準時按計畫執行任務。</p>
+            </div>
+            <!-- 決心 -->
+            <div class="goal-card bg-white border-t-4 border-red-500 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2 justify-between">
+                    <h3 class="text-lg font-black text-gray-800">決心</h3>
+                    <i class="fas fa-fire text-red-500 text-xl"></i>
+                </div>
+                <p class="text-xs text-gray-600 font-bold leading-relaxed">設定明確目標後全力以赴，不輕言放棄。</p>
+            </div>
+            <!-- 細心 -->
+            <div class="goal-card bg-white border-t-4 border-yellow-500 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2 justify-between">
+                    <h3 class="text-lg font-black text-gray-800">細心</h3>
+                    <i class="fas fa-microscope text-yellow-500 text-xl"></i>
+                </div>
+                <p class="text-xs text-gray-600 font-bold leading-relaxed">讀書與作題時注重細節，減少粗心錯誤。</p>
+            </div>
+            <!-- 耐心 -->
+            <div class="goal-card bg-white border-t-4 border-purple-500 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2 justify-between">
+                    <h3 class="text-lg font-black text-gray-800">耐心</h3>
+                    <i class="fas fa-brain text-purple-500 text-xl"></i>
+                </div>
+                <p class="text-xs text-gray-600 font-bold leading-relaxed">面對難題或枯燥內容時保持冷靜，反覆研磨。</p>
+            </div>
+            <!-- 規律 -->
+            <div class="goal-card bg-white border-t-4 border-green-500 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center mb-2 justify-between">
+                    <h3 class="text-lg font-black text-gray-800">規律</h3>
+                    <i class="fas fa-sync-alt text-green-500 text-xl"></i>
+                </div>
+                <p class="text-xs text-gray-600 font-bold leading-relaxed">維持穩定作息，將學習與運動內化為日常習慣。</p>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Main Schedule Table (Takes up 3 columns) -->
+            <main class="lg:col-span-3 bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-gray-100">
+                <div class="p-4 bg-slate-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-2">
+                    <h2 class="text-lg font-bold text-slate-700 flex items-center">
+                        <i class="fas fa-list-check mr-2 text-slate-500"></i>今日執行進度
+                    </h2>
+                    <span id="dayTypeLabel" class="text-xs font-bold px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 shadow-sm">讀取中...</span>
+                </div>
+                
+                <div class="overflow-x-auto scroller flex-grow">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm uppercase leading-normal sticky top-0 z-10">
+                                <th class="py-3 px-4 font-bold text-center w-24 border-b border-gray-200">時間</th>
+                                <th class="py-3 px-4 font-bold w-40 border-b border-gray-200">科目/項目</th>
+                                <th class="py-3 px-4 font-bold border-b border-gray-200">執行內容與目標 <span class="text-xs font-normal text-gray-400 normal-case ml-1">(點擊輸入)</span></th>
+                                <th class="py-3 px-4 font-bold text-center w-20 border-b border-gray-200">完成</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody" class="text-gray-700 text-sm font-medium">
+                            <!-- Javascript will render rows here -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+
+            <!-- Sidebar: Pomodoro & Controls (Takes up 1 column) -->
+            <aside class="space-y-6">
+                
+                <!-- Pomodoro Timer -->
+                <div class="bg-white rounded-xl shadow-md p-6 text-center border border-gray-100 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-orange-400"></div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 flex justify-center items-center">
+                        <i class="fas fa-stopwatch mr-2 text-red-500"></i>專注計時器
+                    </h3>
+                    
+                    <div id="timerDisplay" class="text-6xl font-mono font-black text-slate-800 mb-6 tracking-widest bg-slate-50 rounded-lg py-2 border border-slate-200">
+                        45:00
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button onclick="setTimer(45)" class="px-2 py-2 text-xs font-bold bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition">
+                            <i class="fas fa-book mr-1"></i>學習 45分
+                        </button>
+                        <button onclick="setTimer(10)" class="px-2 py-2 text-xs font-bold bg-green-100 text-green-700 rounded hover:bg-green-200 transition">
+                            <i class="fas fa-coffee mr-1"></i>休息 10分
+                        </button>
+                    </div>
+
+                    <div class="flex justify-center space-x-3">
+                        <button id="startBtn" onclick="toggleTimer()" class="flex-grow py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 active:scale-95">
+                            <i class="fas fa-play mr-1"></i> 開始計時
+                        </button>
+                        <button onclick="resetTimer()" class="w-12 py-3 bg-gray-200 text-gray-600 font-bold rounded-lg hover:bg-gray-300 transition active:scale-95">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats & Export -->
+                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 flex items-center">
+                        <i class="fas fa-clipboard-check mr-2 text-green-600"></i>日結算面板
+                    </h3>
+                    
+                    <div id="progressStats" class="mb-5">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-xs font-bold text-gray-500">今日達成率</span>
+                            <span id="progressText" class="text-xs font-bold text-blue-600">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="exportDailyReport()" class="w-full py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg shadow-green-200 hover:bg-green-700 transition flex items-center justify-center active:scale-95 group">
+                        <i class="fas fa-file-export mr-2 group-hover:animate-bounce"></i> 匯出檢討報告
+                    </button>
+                    <p class="text-[10px] text-gray-400 mt-3 text-center">
+                        <i class="fas fa-info-circle mr-1"></i>每日18:45執行結算，建立負責的交易紀錄。
+                    </p>
+                </div>
+
+            </aside>
+        </div>
+
+        <footer class="mt-8 mb-4 text-center text-gray-400 text-xs">
+            <p>© 2026 七年級寒假成長計畫 | Discipline Equals Freedom</p>
+        </footer>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Configuration & Data ---
+        const START_DATE = "2026-01-26";
+        const END_DATE = "2026-02-15";
+        
+        // baseSchedule defines the structure of a day.
+        // dynamic: true means content changes based on Plan A (Mon/Wed/Fri) or Plan B (Others)
+        const baseSchedule = [
+            { time: "09:00 - 09:15", title: "晨間目標設定", desc: "朗讀加油項目 (責任、決心、細心、耐心、規律)", type: "routine" },
+            { time: "09:15 - 10:00", title: "數學 (1)", desc: "", placeholder: "進度 (如: 1-1 代入消去法 p.5-8)", type: "core" },
+            { time: "10:00 - 10:10", title: "伸展休息", desc: "喝水、遠眺", type: "break" },
+            { time: "10:10 - 10:55", title: "數學 (2)", desc: "", placeholder: "進度 (如: 直角座標應用題)", type: "core" },
+            { time: "10:55 - 11:10", title: "大休息", desc: "點心、自由活動", type: "break" },
+            { time: "11:10 - 11:55", title: "英文 (基礎)", desc: "", placeholder: "單字背誦、文法預習", type: "core" },
+            { time: "12:00 - 13:30", title: "午餐與午休", desc: "徹底放鬆，落實規律作息", type: "break" },
+            
+            // Dynamic Slot (Index 7)
+            { time: "13:30 - 14:15", title: "彈性時段", dynamic: true, desc: "", placeholder: "", type: "core" },
+            
+            { time: "14:15 - 14:25", title: "休息時間", desc: "閉眼休息", type: "break" },
+            { time: "14:25 - 15:10", title: "自然 (核心)", desc: "", placeholder: "進度 (如: 遺傳法則與棋盤方格)", type: "core" },
+            { time: "15:10 - 15:30", title: "點心時間", desc: "補充能量", type: "break" },
+            { time: "15:30 - 16:15", title: "國文 (1)", desc: "", placeholder: "進度 (如: 課文導讀)", type: "core" },
+            { time: "16:15 - 16:25", title: "休息時間", desc: "整理桌面", type: "break" },
+            { time: "16:25 - 17:10", title: "國文 (2)", desc: "", placeholder: "文言文閱讀/成語", type: "core" },
+            { time: "17:10 - 18:00", title: "體能運動", desc: "落實「決心」，流汗排毒 (跳繩/慢跑)", type: "routine" },
+            { time: "18:00 - 18:45", title: "晚餐時間", desc: "營養均衡", type: "break" },
+            { time: "18:45 - 19:00", title: "責任回顧", desc: "檢視今日進度，整理書包", type: "routine" }
+        ];
+
+        // Global State
+        let currentDate = "";
+        let scheduleData = {}; // Stores content and checked state per date
+        let timerInterval;
+        let timerSeconds = 45 * 60;
+        let isTimerRunning = false;
+
+        // --- Initialization ---
+        window.onload = function() {
+            // Initialize Date Picker
+            const today = new Date().toISOString().split('T')[0];
+            const picker = document.getElementById('planDate');
+            
+            // Default to plan start date if today is before it, or today if within range
+            if (today >= START_DATE && today <= END_DATE) {
+                picker.value = today;
+            } else if (today < START_DATE) {
+                picker.value = START_DATE;
+            } else {
+                picker.value = END_DATE;
+            }
+            
+            // Load saved data
+            const savedData = localStorage.getItem('winterPlanData_v2'); // v2 to avoid conflicts
+            if (savedData) {
+                scheduleData = JSON.parse(savedData);
+            }
+
+            // Initial Render
+            currentDate = picker.value;
+            renderSchedule(currentDate);
+
+            // Change Listener
+            picker.addEventListener('change', (e) => {
+                currentDate = e.target.value;
+                renderSchedule(currentDate);
+            });
+            
+            // Ask for notification permission (optional)
+            if ("Notification" in window && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+        };
+
+        // --- Schedule Rendering Logic ---
+        function renderSchedule(dateStr) {
+            const dateObj = new Date(dateStr);
+            const dayOfWeek = dateObj.getDay(); // 0=Sun, 1=Mon...
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = "";
+
+            // Plan A/B Logic
+            // Plan A (Mon/Wed/Fri): English Video/Mag
+            // Plan B (Tue/Thu/Sat/Sun): Natural Science
+            const isPlanA = [1, 3, 5].includes(dayOfWeek);
+            
+            const dynamicTitle = isPlanA 
+                ? '<span class="text-blue-600"><i class="fas fa-film mr-1"></i>英文 (影集/雜誌)</span>' 
+                : '<span class="text-green-600"><i class="fas fa-leaf mr-1"></i>自然 (Session 1)</span>';
+            const dynamicPlaceholder = isPlanA
+                ? "輸入影集名稱或閱讀素材"
+                : "輸入生物預習單元";
+            
+            const dayLabel = document.getElementById('dayTypeLabel');
+            const dayNames = "日一二三四五六";
+            dayLabel.innerHTML = isPlanA 
+                ? `<i class="fas fa-bolt mr-1"></i>週${dayNames[dayOfWeek]}：英文強化日` 
+                : `<i class="fas fa-tree mr-1"></i>週${dayNames[dayOfWeek]}：自然紮根日`;
+            dayLabel.className = isPlanA 
+                ? "text-xs font-bold px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+                : "text-xs font-bold px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-200";
+
+            // Get data for this day
+            const dayData = scheduleData[dateStr] || {};
+
+            baseSchedule.forEach((item, index) => {
+                let row = document.createElement('tr');
+                row.className = "border-b border-gray-100 hover:bg-slate-50 transition group";
+                
+                // Content Handling
+                let displayTitle = item.title;
+                let placeholder = item.placeholder;
+                
+                if (item.dynamic) {
+                    displayTitle = dynamicTitle;
+                    placeholder = dynamicPlaceholder;
+                }
+
+                // Retrieve saved state
+                const key = `${index}_${item.time}`; 
+                const savedContent = dayData[key]?.content || "";
+                const isDone = dayData[key]?.done || false;
+
+                if (isDone) row.classList.add('completed-row');
+
+                // 1. Time Column
+                let timeCell = `<td class="py-3 px-4 text-center whitespace-nowrap font-bold text-slate-500 font-mono text-xs">${item.time}</td>`;
+                
+                // 2. Title Column
+                let titleCell = `<td class="py-3 px-4 font-bold text-slate-700">${displayTitle}</td>`;
+                
+                // 3. Input/Description Column
+                let contentCell = "";
+                if (item.type === 'break') {
+                    row.className = "bg-gray-50 border-b border-gray-100 text-gray-400"; 
+                    contentCell = `<td class="py-3 px-4 text-xs italic"><i class="fas fa-mug-hot mr-1"></i>${item.desc}</td>`;
+                } else if (item.type === 'routine') {
+                    contentCell = `<td class="py-3 px-4 text-slate-500 text-xs font-medium">${item.desc}</td>`;
+                } else {
+                    // Core Editable Item
+                    contentCell = `<td class="py-3 px-4 relative">
+                        <input type="text" 
+                            class="w-full bg-transparent border-b border-transparent group-hover:border-gray-300 focus:border-blue-500 focus:outline-none py-1 text-slate-700 placeholder-gray-300 transition-colors" 
+                            placeholder="${placeholder}" 
+                            value="${savedContent}"
+                            oninput="saveRow(${index}, '${item.time}', this.value)"
+                        >
+                    </td>`;
+                }
+
+                // 4. Checkbox Column
+                let checkCell = "";
+                if (item.type !== 'break') {
+                    checkCell = `<td class="py-3 px-4 text-center">
+                        <div class="inline-flex items-center justify-center relative">
+                            <input type="checkbox" 
+                                class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 shadow-sm checked:bg-blue-600 checked:border-blue-600 transition-all"
+                                ${isDone ? 'checked' : ''}
+                                onchange="toggleDone(${index}, '${item.time}', this.checked)"
+                            >
+                            <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-xs">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </div>
+                    </td>`;
+                } else {
+                    checkCell = `<td></td>`;
+                }
+
+                row.innerHTML = timeCell + titleCell + contentCell + checkCell;
+                tbody.appendChild(row);
+            });
+            
+            updateProgress();
+        }
+
+        // --- Data Logic ---
+        function saveRow(index, timeStr, content) {
+            if (!scheduleData[currentDate]) scheduleData[currentDate] = {};
+            const key = `${index}_${timeStr}`;
+            
+            let current = scheduleData[currentDate][key] || {};
+            // Only update content, keep done status
+            scheduleData[currentDate][key] = {
+                content: content,
+                done: current.done || false
+            };
+            
+            localStorage.setItem('winterPlanData_v2', JSON.stringify(scheduleData));
+        }
+
+        function toggleDone(index, timeStr, isChecked) {
+            if (!scheduleData[currentDate]) scheduleData[currentDate] = {};
+            const key = `${index}_${timeStr}`;
+            
+            let current = scheduleData[currentDate][key] || {};
+            // Update done status
+            scheduleData[currentDate][key] = {
+                content: current.content || "",
+                done: isChecked
+            };
+            
+            localStorage.setItem('winterPlanData_v2', JSON.stringify(scheduleData));
+            
+            // Visual feedback without full re-render
+            const rows = document.getElementById('scheduleBody').children;
+            if (isChecked) {
+                rows[index].classList.add('completed-row');
+            } else {
+                rows[index].classList.remove('completed-row');
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const dayData = scheduleData[currentDate] || {};
+            const trackableItems = baseSchedule.filter(i => i.type !== 'break');
+            const total = trackableItems.length;
+            
+            let completed = 0;
+            baseSchedule.forEach((item, idx) => {
+                if (item.type === 'break') return;
+                const key = `${idx}_${item.time}`;
+                if (dayData[key]?.done) completed++;
+            });
+
+            const percent = Math.round((completed / total) * 100);
+            document.getElementById('progressBar').style.width = percent + "%";
+            document.getElementById('progressText').innerText = percent + "%";
+        }
+
+        // --- Pomodoro Logic ---
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timerDisplay').innerText = formatTime(timerSeconds);
+            document.title = `${formatTime(timerSeconds)} - 專注計時`;
+        }
+
+        function setTimer(minutes) {
+            stopTimer();
+            timerSeconds = minutes * 60;
+            updateTimerDisplay();
+            document.getElementById('timerDisplay').parentElement.classList.remove('timer-active');
+            
+            const btn = document.getElementById('startBtn');
+            btn.innerHTML = '<i class="fas fa-play mr-1"></i> 開始計時';
+            btn.className = "flex-grow py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 active:scale-95";
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            isTimerRunning = true;
+            const btn = document.getElementById('startBtn');
+            btn.innerHTML = '<i class="fas fa-pause mr-1"></i> 暫停';
+            btn.className = "flex-grow py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 transition shadow-lg shadow-yellow-200 active:scale-95";
+            
+            document.getElementById('timerDisplay').parentElement.classList.add('timer-active');
+
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+                if (timerSeconds <= 0) {
+                    stopTimer();
+                    playNotification();
+                    alert("🔔 時間到！休息一下或是開始下一段旅程！");
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            const btn = document.getElementById('startBtn');
+            btn.innerHTML = '<i class="fas fa-play mr-1"></i> 繼續';
+            btn.className = "flex-grow py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 active:scale-95";
+            document.getElementById('timerDisplay').parentElement.classList.remove('timer-active');
+            document.title = "七年級寒假戰鬥計畫";
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timerSeconds = 45 * 60;
+            updateTimerDisplay();
+        }
+
+        function playNotification() {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("寒假戰鬥計畫", { body: "時間到了！該換個動作囉！" });
+            }
+        }
+
+        // --- Export Logic ---
+        function exportDailyReport() {
+            const dayData = scheduleData[currentDate] || {};
+            let report = `【七年級寒假戰鬥計畫 - 日結算報告】\n`;
+            report += `日期: ${currentDate}\n`;
+            report += `----------------------------------------\n`;
+            report += `今日核心指標：責任心、決心、細心、耐心、規律\n\n`;
+            
+            let doneList = [];
+            let todoList = [];
+
+            const dateObj = new Date(currentDate);
+            const dayOfWeek = dateObj.getDay();
+            const isPlanA = [1, 3, 5].includes(dayOfWeek);
+
+            baseSchedule.forEach((item, index) => {
+                if (item.type === 'break') return;
+                
+                let title = item.title;
+                if (item.dynamic) {
+                    title = isPlanA ? "英文 (影集/雜誌)" : "自然 (Session 1)";
+                }
+
+                const key = `${index}_${item.time}`;
+                const content = dayData[key]?.content || "(未填寫)";
+                const isDone = dayData[key]?.done;
+
+                // Format: [X] 09:00 - Math: Content
+                let statusMark = isDone ? "[v]" : "[ ]";
+                let line = `${statusMark} ${item.time} | ${title}`;
+                if (item.type === 'core') line += `\n    └─ 進度: ${content}`;
+
+                if (isDone) {
+                    doneList.push(line);
+                } else {
+                    todoList.push(line);
+                }
+            });
+
+            report += `📊 完成項目 (${doneList.length}):\n`;
+            if (doneList.length === 0) report += "   (尚無完成項目，加油！)\n";
+            else report += doneList.join('\n') + "\n";
+
+            report += `\n📝 待加強 / 未完成 (${todoList.length}):\n`;
+            if (todoList.length === 0) report += "   (太強了！今日任務全數Clean！)\n";
+            else report += todoList.join('\n') + "\n";
+            
+            report += `\n----------------------------------------\n`;
+            report += `家長簽名: ___________________\n`;
+            report += `學生自評 (1-10分): __________\n`;
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `寒假計畫_日結單_${currentDate}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
