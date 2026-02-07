@@ -285,38 +285,57 @@
             };
         }
 
+        // --- 修復後的卡片反面內容處理與發音邏輯 ---
         function formatBackContent(text) {
             let lines = text.split('\n');
             let html = lines.map(line => {
                 let processedLine = line.trim();
-                let isIrregular = processedLine.includes('【不規則動詞三態】');
+                // 使用原始 line 來進行內容判斷較為準確
+                let isIrregular = line.includes('【不規則動詞三態】');
+                let isExample = line.includes('【例句】');
                 
                 // 標題顏色化
                 processedLine = processedLine.replace(/(【.*?】)/g, '<span class="content-label">$1</span>');
                 // 音標顏色化
                 processedLine = processedLine.replace(/\[(.*?)\]/g, '<span class="phonetic bg-gray-100 px-1 rounded">[$1]</span>');
                 
-                // 判斷整行樣式與發音按鈕
                 if (isIrregular) {
-                    const speechText = line.replace(/【.*?】/g, '').replace(/\[.*?\]/g, '').trim();
-                    return `<div class="flex items-center justify-between irregular-verb py-1">
-                        <span>${processedLine}</span>
-                        <button onclick="window.speakText(event, \`${speechText}\`)" class="p-1 text-red-400 hover:text-red-600">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                        </button>
-                    </div>`;
-                } else if (processedLine.includes('【例句】')) {
-                    // 擷取【例句】標籤後的文字，並在遇到第一個左括號 ( 即中文翻譯處 ) 停止
+                    // 移除標籤、音標，並移除開頭的連字號與空白，避免發音引擎停頓
+                    let speechText = line.replace(/【.*?】/g, '')
+                                         .replace(/\[.*?\]/g, '')
+                                         .replace(/^-+\s*/, '') // 移除開頭的 - 
+                                         .trim();
+                    
+                    if (speechText) {
+                         // 安全轉義：處理單引號與雙引號，避免 HTML 屬性或 JS 字串錯誤
+                        const safeSpeechText = speechText.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        return `<div class="flex items-center justify-between irregular-verb py-1">
+                            <span>${processedLine}</span>
+                            <button onclick="window.speakText(event, \`${safeSpeechText}\`)" class="p-1 text-red-400 hover:text-red-600">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                            </button>
+                        </div>`;
+                    }
+                } else if (isExample) {
+                    // 擷取【例句】標籤後的文字
                     let speechPart = line.split('【例句】')[1] || "";
-                    let cleanSpeechText = speechPart.split('(')[0].replace(/\[.*?\]/g, '').trim();
+                    // 支援半形 ( 和全形 （ 括號，避免讀到中文翻譯
+                    let cleanSpeechText = speechPart.split(/[\(（]/)[0]
+                                                    .replace(/\[.*?\]/g, '')
+                                                    .trim();
 
-                    return `<div class="flex items-start justify-between content-text py-1 group">
-                        <span>${processedLine}</span>
-                        <button onclick="window.speakText(event, \`${cleanSpeechText.replace(/'/g, "\\'")}\`)" class="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                        </button>
-                    </div>`;
+                    if (cleanSpeechText) {
+                         // 安全轉義：處理單引號與雙引號
+                        const safeSpeechText = cleanSpeechText.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        return `<div class="flex items-start justify-between content-text py-1 group">
+                            <span>${processedLine}</span>
+                            <button onclick="window.speakText(event, \`${safeSpeechText}\`)" class="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                            </button>
+                        </div>`;
+                    }
                 }
+                // 預設回傳 (無發音按鈕)
                 return `<div class="content-text py-0.5">${processedLine}</div>`;
             }).join('');
             return html;
